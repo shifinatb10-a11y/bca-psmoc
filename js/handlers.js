@@ -39,10 +39,15 @@ function bindEvents(){
   const eventSubmit=document.getElementById('eventSubmit');
   if(eventSubmit) eventSubmit.onclick=async()=>{
     const title=document.getElementById('fTitle').value.trim();
+    const category=document.getElementById('fCategory').value;
     const date=parseDMY(document.getElementById('fDate').value.trim());
+    const time_schedule=document.getElementById('fTime').value.trim();
+    const venue=document.getElementById('fVenue').value.trim();
+    const coordinator=document.getElementById('fCoordinator').value.trim();
+    const guest_speaker=document.getElementById('fGuest').value.trim();
     const desc=document.getElementById('fDesc').value.trim();
     const status=document.getElementById('fStatus').value;
-    if(!title||!date) return;
+    if(!title||!date||!desc) return;
     const editId=state.modal.editId;
     const file=document.getElementById('fImgFile').files[0];
 
@@ -56,8 +61,9 @@ function bindEvents(){
       image_url = pub.publicUrl;
     }
 
-    if(editId) await updateEventRow(editId, {title,date,desc,status,image_url});
-    else await saveEventRow({title,date,desc,status,image_url});
+    const payload={title,category,date,time_schedule,venue,coordinator,guest_speaker,desc,status,image_url};
+    if(editId) await updateEventRow(editId, payload);
+    else await saveEventRow(payload);
     state.modal=null; state.page='events'; state.eventsTab=status;
     await loadAll();
   };

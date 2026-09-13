@@ -8,6 +8,12 @@ function bindEvents(){
   const finDateEl=document.getElementById('finDate'); if(finDateEl) autoSlash(finDateEl);
   const addGalleryBtn=document.getElementById('addGalleryBtn'); if(addGalleryBtn) addGalleryBtn.onclick=()=>{ state.modal={type:'gallery'}; render(); };
   const addFinanceBtn=document.getElementById('addFinanceBtn'); if(addFinanceBtn) addFinanceBtn.onclick=()=>{ state.modal={type:'finance'}; render(); };
+  const finTypeEl=document.getElementById('finType');
+  if(finTypeEl) finTypeEl.onchange=()=>{
+    const isExpense = finTypeEl.value==='expense';
+    document.getElementById('finGivenByLabel').textContent = isExpense ? 'Given To' : 'Given By';
+    document.getElementById('finGivenBy').placeholder = isExpense ? 'e.g. Vendor / Person paid' : 'e.g. Student name / Department';
+  };
   const addReportBtn=document.getElementById('addReportBtn'); if(addReportBtn) addReportBtn.onclick=()=>{ state.modal={type:'report'}; render(); };
   const repDateEl=document.getElementById('repDate'); if(repDateEl) autoSlash(repDateEl);
 

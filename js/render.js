@@ -155,9 +155,9 @@ function renderModal(){
     <div class="field"><label>Date</label><input id="fDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
     <div class="field"><label>Description</label><textarea id="fDesc" placeholder="Short description">${esc(m.data?.desc||'')}</textarea></div>
     <div class="field"><label>Status</label><select id="fStatus"><option value="upcoming" ${m.data?.status==='upcoming'?'selected':''}>Upcoming</option><option value="done" ${m.data?.status==='done'?'selected':''}>Already Done</option></select></div>
-    <div class="field"><label>Image URL</label><input id="fImg" placeholder="https://..." value="${esc(m.data?.img||'')}"></div>
-    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="eventSubmit">${m.editId?'Save Changes':'Add Event'}</button></div>
-    <div class="hint">Paste a direct image URL. Leave blank for a placeholder.</div>`);
+    <div class="field"><label>${m.editId ? 'Replace Image (optional)' : 'Image'}</label><input id="fImgFile" type="file" accept="image/*"></div>
+    <div class="hint">${m.editId ? 'Leave empty to keep the current image.' : 'Optional — leave empty for a placeholder.'}</div>
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="eventSubmit">${m.editId?'Save Changes':'Add Event'}</button></div>`);
   if(m.type==='gallery') return overlay(`
     <h3>${m.editId?'Edit gallery item':'Add gallery item'}</h3>
     <div class="field"><label>${m.editId ? 'Replace File (optional)' : 'File'}</label><input id="gFile" type="file" accept="image/*,video/*"></div>

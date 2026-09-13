@@ -51,10 +51,10 @@ function renderHome(){
     <div class="hero-cta"><button class="btn-primary" data-nav="events">Program Schedules</button><button class="btn-ghost" data-nav="gallery">View Galleries</button></div>
   </div>
   <div class="stats-row">
-    <div class="stat"><div class="num">180+</div><div class="lbl">BCA Students</div></div>
+    <div class="stat"><div class="num">120+</div><div class="lbl">BCA Students</div></div>
     <div class="stat"><div class="num">${state.events.filter(e=>e.status==='done').length}+</div><div class="lbl">Events Completed</div></div>
-    <div class="stat"><div class="num">8</div><div class="lbl">Faculty Members</div></div>
-    <div class="stat"><div class="num">65+</div><div class="lbl">Lab Systems</div></div>
+    <div class="stat"><div class="num">3</div><div class="lbl">Faculty Members</div></div>
+    <div class="stat"><div class="num">60+</div><div class="lbl">Lab Systems</div></div>
   </div>
   <div class="sec">
     <div class="sec-head"><div><h2>Upcoming programs</h2><p>Workshops, seminars and technical events.</p></div><span class="viewall" data-nav="events">View all →</span></div>

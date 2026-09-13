@@ -82,7 +82,7 @@ function evRowHtml(e){
 function galCardHtml(g){
   return `<div class="gcard">
     ${state.isAdmin?`<button class="ed" data-edit-gallery="${g.id}">✎</button><button class="rm" data-del-gallery="${g.id}">✕</button>`:``}
-    <div class="mw">${g.type==='video'?`<video src="${esc(g.url)}" controls muted></video>`:`<img src="${esc(g.url)}" alt="${esc(g.title)}" onerror="this.src='https://placehold.co/500x500/0a1120/7a88a8?text=Image+unavailable'">`}</div>
+    <div class="mw" data-open-gallery="${g.id}" style="cursor:pointer">${g.type==='video'?`<video src="${esc(g.url)}" muted></video>`:`<img src="${esc(g.url)}" alt="${esc(g.title)}" onerror="this.src='https://placehold.co/500x500/0a1120/7a88a8?text=Image+unavailable'">`}</div>
     <div class="cap"><div class="name">${esc(g.title)}</div><div class="prog">${esc(g.program||"")}</div></div>
   </div>`;
 }
@@ -160,9 +160,8 @@ function renderModal(){
     <div class="hint">Paste a direct image URL. Leave blank for a placeholder.</div>`);
   if(m.type==='gallery') return overlay(`
     <h3>${m.editId?'Edit gallery item':'Add gallery item'}</h3>
-    <div class="field"><label>Type</label><select id="gType"><option value="image" ${m.data?.type==='image'?'selected':''}>Image</option><option value="video" ${m.data?.type==='video'?'selected':''}>Video</option></select></div>
     <div class="field"><label>${m.editId ? 'Replace File (optional)' : 'File'}</label><input id="gFile" type="file" accept="image/*,video/*"></div>
-    ${m.editId ? `<div class="hint">Leave file empty to keep the current media.</div>` : ``}
+    <div class="hint">${m.editId ? 'Leave file empty to keep the current media.' : 'Image or video type is detected automatically from the file.'}</div>
     <div class="field"><label>Title</label><input id="gTitle" placeholder="e.g. Orientation Day" value="${esc(m.data?.title||'')}"></div>
     <div class="field"><label>Program / Event name</label><input id="gProgram" placeholder="e.g. Tech Fest 2026" value="${esc(m.data?.program||'')}"></div>
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="gallerySubmit">${m.editId?'Save Changes':'Add Item'}</button></div>`);
@@ -173,5 +172,14 @@ function renderModal(){
     <div class="field"><label>Amount (₹)</label><input id="finAmount" type="number" placeholder="0" value="${m.data?.amount??''}"></div>
     <div class="field"><label>Date</label><input id="finDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="financeSubmit">${m.editId?'Save Changes':'Add Entry'}</button></div>`);
+  if(m.type==='lightbox') return `<div class="overlay lightbox-overlay" id="overlayBg">
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <div class="lightbox-body">
+      ${m.data.type==='video'
+        ? `<video src="${esc(m.data.url)}" controls autoplay></video>`
+        : `<img src="${esc(m.data.url)}" alt="${esc(m.data.title)}">`}
+      <div class="lightbox-cap"><div class="name">${esc(m.data.title)}</div><div class="prog">${esc(m.data.program||"")}</div></div>
+    </div>
+  </div>`;
 }
 function overlay(inner){ return `<div class="overlay" id="overlayBg"><div class="modal">${inner}</div></div>`; }

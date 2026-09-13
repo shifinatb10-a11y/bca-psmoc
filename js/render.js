@@ -161,11 +161,11 @@ function renderModal(){
   if(m.type==='gallery') return overlay(`
     <h3>${m.editId?'Edit gallery item':'Add gallery item'}</h3>
     <div class="field"><label>Type</label><select id="gType"><option value="image" ${m.data?.type==='image'?'selected':''}>Image</option><option value="video" ${m.data?.type==='video'?'selected':''}>Video</option></select></div>
-    <div class="field"><label>Media URL</label><input id="gUrl" placeholder="https://..." value="${esc(m.data?.url||'')}"></div>
+    <div class="field"><label>${m.editId ? 'Replace File (optional)' : 'File'}</label><input id="gFile" type="file" accept="image/*,video/*"></div>
+    ${m.editId ? `<div class="hint">Leave file empty to keep the current media.</div>` : ``}
     <div class="field"><label>Title</label><input id="gTitle" placeholder="e.g. Orientation Day" value="${esc(m.data?.title||'')}"></div>
     <div class="field"><label>Program / Event name</label><input id="gProgram" placeholder="e.g. Tech Fest 2026" value="${esc(m.data?.program||'')}"></div>
-    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="gallerySubmit">${m.editId?'Save Changes':'Add Item'}</button></div>
-    <div class="hint">Paste a direct image/video URL.</div>`);
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="gallerySubmit">${m.editId?'Save Changes':'Add Item'}</button></div>`);
   if(m.type==='finance') return overlay(`
     <h3>${m.editId?'Edit financial entry':'Add financial entry'}</h3>
     <div class="field"><label>Description</label><input id="finDesc" placeholder="e.g. Lab Fee Collection" value="${esc(m.data?.desc||'')}"></div>
@@ -175,4 +175,3 @@ function renderModal(){
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="financeSubmit">${m.editId?'Save Changes':'Add Entry'}</button></div>`);
 }
 function overlay(inner){ return `<div class="overlay" id="overlayBg"><div class="modal">${inner}</div></div>`; }
-

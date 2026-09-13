@@ -1,18 +1,20 @@
 async function loadAll(){
   try{
-    const [evRes, galRes, finRes] = await Promise.all([
+    const [evRes, galRes, finRes, repRes] = await Promise.all([
       sb.from('events').select('*').order('date', {ascending:true}),
       sb.from('gallery').select('*').order('created_at', {ascending:false}),
       state.isAdmin
         ? sb.from('finance').select('*').order('date', {ascending:false})
-        : Promise.resolve({data:[], error:null})
+        : Promise.resolve({data:[], error:null}),
+      sb.from('reports').select('*').order('date', {ascending:false})
     ]);
     state.events = (evRes.data || []).map(e => ({...e, desc: e.desc || "", img: e.image_url || ""}));
     state.gallery = galRes.data || [];
     state.finance = finRes.data || [];
+    state.reports = repRes.data || [];
   }catch(e){
     console.error("Supabase load error", e);
-    state.events = []; state.gallery = []; state.finance = [];
+    state.events = []; state.gallery = []; state.finance = []; state.reports = [];
   }
   state.loading = false;
   render();
@@ -27,3 +29,6 @@ async function deleteGalleryRow(id){ const { error } = await sb.from('gallery').
 async function saveFinanceRow(f){ const { error } = await sb.from('finance').insert([f]); if(error) console.error(error); }
 async function updateFinanceRow(id, f){ const { error } = await sb.from('finance').update(f).eq('id', id); if(error) console.error(error); }
 async function deleteFinanceRow(id){ const { error } = await sb.from('finance').delete().eq('id', id); if(error) console.error(error); }
+async function saveReportRow(r){ const { error } = await sb.from('reports').insert([r]); if(error) console.error(error); }
+async function updateReportRow(id, r){ const { error } = await sb.from('reports').update(r).eq('id', id); if(error) console.error(error); }
+async function deleteReportRow(id){ const { error } = await sb.from('reports').delete().eq('id', id); if(error) console.error(error); }

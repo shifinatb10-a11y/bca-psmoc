@@ -10,6 +10,7 @@ function render(){
           ${sideLink('home','Home')}
           ${sideLink('events','Programs & Events')}
           ${sideLink('gallery','Galleries')}
+          ${sideLink('reports','Reports')}
           ${state.isAdmin ? sideLink('finance','Finance') : ''}
           ${sideLink('about','About Department')}
         </div>
@@ -35,6 +36,7 @@ function renderPage(){
   if(state.page==='events') return renderEvents();
   if(state.page==='gallery') return renderGallery();
   if(state.page==='finance') return state.isAdmin ? renderFinance() : renderHome();
+  if(state.page==='reports') return renderReports();
   if(state.page==='about') return renderAbout();
   return "";
 }
@@ -120,6 +122,22 @@ function renderFinance(){
   </div>`;
 }
 
+function renderReports(){
+  const rows=[...state.reports].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  return `<div class="sec">
+    <div class="sec-head"><div><h2>Reports</h2><p>Department reports and official documents.</p></div>${state.isAdmin?`<button class="add-btn" id="addReportBtn">+ Add Report</button>`:``}</div>
+    ${rows.length===0?`<div class="empty">No reports published yet.</div>`:`
+    <div class="event-list">
+      ${rows.map(r=>`<div class="ev-row">
+        <div class="ev-date">${fmtDate(r.date)}</div>
+        <div class="ev-body"><div class="ev-title">${esc(r.title)}</div><div class="ev-desc">${esc(r.desc||"")}</div></div>
+        ${r.file_url ? `<a class="btn-ghost" style="padding:8px 16px; font-size:13px;" href="${esc(r.file_url)}" target="_blank" rel="noopener">View</a>` : ``}
+        ${state.isAdmin?`<button class="edit-x" data-edit-report="${r.id}">✎</button><button class="del-x" data-del-report="${r.id}">✕</button>`:``}
+      </div>`).join("")}
+    </div>`}
+  </div>`;
+}
+
 function renderAbout(){
   return `<div class="sec">
     <div class="sec-head"><div><h2>About the department</h2><p>Faculty, facilities and department overview.</p></div></div>
@@ -172,6 +190,14 @@ function renderModal(){
     <div class="field"><label>Amount (₹)</label><input id="finAmount" type="number" placeholder="0" value="${m.data?.amount??''}"></div>
     <div class="field"><label>Date</label><input id="finDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="financeSubmit">${m.editId?'Save Changes':'Add Entry'}</button></div>`);
+  if(m.type==='report') return overlay(`
+    <h3>${m.editId?'Edit report':'Add report'}</h3>
+    <div class="field"><label>Title</label><input id="repTitle" placeholder="e.g. Annual Activity Report 2026" value="${esc(m.data?.title||'')}"></div>
+    <div class="field"><label>Description</label><textarea id="repDesc" placeholder="Short description">${esc(m.data?.desc||'')}</textarea></div>
+    <div class="field"><label>Date</label><input id="repDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
+    <div class="field"><label>${m.editId?'Replace File (optional)':'File (PDF, optional)'}</label><input id="repFile" type="file" accept=".pdf,image/*"></div>
+    ${m.editId ? `<div class="hint">Leave file empty to keep the current file.</div>` : ``}
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="reportSubmit">${m.editId?'Save Changes':'Add Report'}</button></div>`);
   if(m.type==='lightbox') return `<div class="overlay lightbox-overlay" id="overlayBg">
     <button class="lightbox-close" id="lightboxClose">✕</button>
     <div class="lightbox-body">

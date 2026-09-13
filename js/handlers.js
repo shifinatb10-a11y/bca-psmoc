@@ -17,6 +17,8 @@ function bindEvents(){
   document.querySelectorAll('[data-edit-gallery]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-gallery'); const data=state.gallery.find(g=>g.id===id); state.modal={type:'gallery',editId:id,data}; render(); }; });
   document.querySelectorAll('[data-edit-finance]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-finance'); const data=state.finance.find(f=>f.id===id); state.modal={type:'finance',editId:id,data}; render(); }; });
 
+  document.querySelectorAll('[data-open-gallery]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-open-gallery'); const data=state.gallery.find(g=>g.id===id); if(data) { state.modal={type:'lightbox', data}; render(); } }; });
+  const lightboxClose=document.getElementById('lightboxClose'); if(lightboxClose) lightboxClose.onclick=()=>{ state.modal=null; render(); };
   const overlayBg=document.getElementById('overlayBg'); if(overlayBg) overlayBg.onclick=(ev)=>{ if(ev.target.id==='overlayBg'){ state.modal=null; render(); } };
   const modalCancel=document.getElementById('modalCancel'); if(modalCancel) modalCancel.onclick=()=>{ state.modal=null; render(); };
 
@@ -47,7 +49,6 @@ function bindEvents(){
 
   const gallerySubmit=document.getElementById('gallerySubmit');
   if(gallerySubmit) gallerySubmit.onclick=async()=>{
-    const type=document.getElementById('gType').value;
     const title=document.getElementById('gTitle').value.trim();
     const program=document.getElementById('gProgram').value.trim();
     const fileInput=document.getElementById('gFile');
@@ -57,7 +58,9 @@ function bindEvents(){
     if(!file && !editId) return; // new item needs a file
 
     let url = state.modal.data?.url; // keep existing on edit if no new file
+    let type = state.modal.data?.type || 'image';
     if(file){
+      type = file.type.startsWith('video/') ? 'video' : 'image'; // detect from actual file, not the dropdown
       gallerySubmit.disabled=true; gallerySubmit.textContent='Uploading...';
       const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
       const { error: upErr } = await sb.storage.from('gallery').upload(path, file);

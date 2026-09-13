@@ -48,11 +48,24 @@ function bindEvents(){
   const gallerySubmit=document.getElementById('gallerySubmit');
   if(gallerySubmit) gallerySubmit.onclick=async()=>{
     const type=document.getElementById('gType').value;
-    const url=document.getElementById('gUrl').value.trim();
     const title=document.getElementById('gTitle').value.trim();
     const program=document.getElementById('gProgram').value.trim();
-    if(!url||!title) return;
+    const fileInput=document.getElementById('gFile');
+    const file=fileInput.files[0];
     const editId=state.modal.editId;
+    if(!title) return;
+    if(!file && !editId) return; // new item needs a file
+
+    let url = state.modal.data?.url; // keep existing on edit if no new file
+    if(file){
+      gallerySubmit.disabled=true; gallerySubmit.textContent='Uploading...';
+      const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
+      const { error: upErr } = await sb.storage.from('gallery').upload(path, file);
+      if(upErr){ console.error(upErr); alert('Upload failed: '+upErr.message); gallerySubmit.disabled=false; gallerySubmit.textContent='Add Item'; return; }
+      const { data: pub } = sb.storage.from('gallery').getPublicUrl(path);
+      url = pub.publicUrl;
+    }
+
     if(editId) await updateGalleryRow(editId, {type,url,title,program});
     else await saveGalleryRow({type,url,title,program});
     state.modal=null;

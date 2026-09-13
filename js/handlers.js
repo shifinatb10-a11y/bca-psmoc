@@ -8,14 +8,18 @@ function bindEvents(){
   const finDateEl=document.getElementById('finDate'); if(finDateEl) autoSlash(finDateEl);
   const addGalleryBtn=document.getElementById('addGalleryBtn'); if(addGalleryBtn) addGalleryBtn.onclick=()=>{ state.modal={type:'gallery'}; render(); };
   const addFinanceBtn=document.getElementById('addFinanceBtn'); if(addFinanceBtn) addFinanceBtn.onclick=()=>{ state.modal={type:'finance'}; render(); };
+  const addReportBtn=document.getElementById('addReportBtn'); if(addReportBtn) addReportBtn.onclick=()=>{ state.modal={type:'report'}; render(); };
+  const repDateEl=document.getElementById('repDate'); if(repDateEl) autoSlash(repDateEl);
 
   document.querySelectorAll('[data-del-event]').forEach(el=>{ el.onclick=async()=>{ await deleteEventRow(el.getAttribute('data-del-event')); await loadAll(); }; });
   document.querySelectorAll('[data-del-gallery]').forEach(el=>{ el.onclick=async()=>{ await deleteGalleryRow(el.getAttribute('data-del-gallery')); await loadAll(); }; });
   document.querySelectorAll('[data-del-finance]').forEach(el=>{ el.onclick=async()=>{ await deleteFinanceRow(el.getAttribute('data-del-finance')); await loadAll(); }; });
+  document.querySelectorAll('[data-del-report]').forEach(el=>{ el.onclick=async()=>{ await deleteReportRow(el.getAttribute('data-del-report')); await loadAll(); }; });
 
   document.querySelectorAll('[data-edit-event]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-event'); const data=state.events.find(e=>e.id===id); state.modal={type:'event',editId:id,data}; render(); }; });
   document.querySelectorAll('[data-edit-gallery]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-gallery'); const data=state.gallery.find(g=>g.id===id); state.modal={type:'gallery',editId:id,data}; render(); }; });
   document.querySelectorAll('[data-edit-finance]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-finance'); const data=state.finance.find(f=>f.id===id); state.modal={type:'finance',editId:id,data}; render(); }; });
+  document.querySelectorAll('[data-edit-report]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-report'); const data=state.reports.find(r=>r.id===id); state.modal={type:'report',editId:id,data}; render(); }; });
 
   document.querySelectorAll('[data-open-gallery]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-open-gallery'); const data=state.gallery.find(g=>g.id===id); if(data) { state.modal={type:'lightbox', data}; render(); } }; });
   const lightboxClose=document.getElementById('lightboxClose'); if(lightboxClose) lightboxClose.onclick=()=>{ state.modal=null; render(); };
@@ -97,6 +101,31 @@ function bindEvents(){
     if(editId) await updateFinanceRow(editId, {desc,type,amount,date});
     else await saveFinanceRow({desc,type,amount,date});
     state.modal=null;
+    await loadAll();
+  };
+
+  const reportSubmit=document.getElementById('reportSubmit');
+  if(reportSubmit) reportSubmit.onclick=async()=>{
+    const title=document.getElementById('repTitle').value.trim();
+    const desc=document.getElementById('repDesc').value.trim();
+    const date=parseDMY(document.getElementById('repDate').value.trim());
+    if(!title||!date) return;
+    const editId=state.modal.editId;
+    const file=document.getElementById('repFile').files[0];
+
+    let file_url = state.modal.data?.file_url || null; // keep existing on edit if no new file
+    if(file){
+      reportSubmit.disabled=true; reportSubmit.textContent='Uploading...';
+      const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
+      const { error: upErr } = await sb.storage.from('reports').upload(path, file);
+      if(upErr){ console.error(upErr); alert('Upload failed: '+upErr.message); reportSubmit.disabled=false; reportSubmit.textContent='Add Report'; return; }
+      const { data: pub } = sb.storage.from('reports').getPublicUrl(path);
+      file_url = pub.publicUrl;
+    }
+
+    if(editId) await updateReportRow(editId, {title,desc,date,file_url});
+    else await saveReportRow({title,desc,date,file_url});
+    state.modal=null; state.page='reports';
     await loadAll();
   };
 }

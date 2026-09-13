@@ -1,0 +1,178 @@
+function render(){
+  const app=document.getElementById('app');
+  if(state.loading){ app.innerHTML=`<div class="loading-msg">Loading department portal…</div>`; return; }
+  app.innerHTML = `
+  <div class="shell">
+    <aside class="sidebar">
+      <div>
+        <div class="brand"><div class="brand-mark"></div><div class="brand-text"><div class="t1">PSMO College (Autonomous)</div><div class="t2">BCA DEPARTMENT</div></div></div>
+        <div class="sidenav">
+          ${sideLink('home','Home')}
+          ${sideLink('events','Programs & Events')}
+          ${sideLink('gallery','Galleries')}
+          ${state.isAdmin ? sideLink('finance','Finance') : ''}
+          ${sideLink('about','About Department')}
+        </div>
+      </div>
+      <div class="side-foot">
+        ${state.isAdmin ? `<button class="admin-btn" id="logoutBtn">Log out (Admin)</button>` : `<button class="admin-btn" id="openLogin">Admin Login</button>`}
+      </div>
+    </aside>
+    <div class="main">
+      ${state.isAdmin ? `<div class="admin-bar">Logged in as <b>Admin</b> — manage events, gallery and finance.</div>` : ``}
+      ${renderPage()}
+      <footer><div>© 2026 BCA Department, PSMO College (Autonomous).</div><div>Designed for BCA Students &amp; Faculty</div></footer>
+    </div>
+  </div>
+  ${state.modal ? renderModal() : ""}
+  `;
+  bindEvents();
+}
+function sideLink(page,label){ return `<div class="navlink ${state.page===page?'active':''}" data-nav="${page}"><span class="dot"></span>${label}</div>`; }
+
+function renderPage(){
+  if(state.page==='home') return renderHome();
+  if(state.page==='events') return renderEvents();
+  if(state.page==='gallery') return renderGallery();
+  if(state.page==='finance') return state.isAdmin ? renderFinance() : renderHome();
+  if(state.page==='about') return renderAbout();
+  return "";
+}
+
+function renderHome(){
+  const upcoming=state.events.filter(e=>e.status==='upcoming').sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,3);
+  const done=state.events.filter(e=>e.status==='done').sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,3);
+  const galPreview=state.gallery.slice(0,4);
+  return `
+  <div class="hero">
+    <div class="eyebrow">PSMO COLLEGE (AUTONOMOUS) · TIRURANGADI</div>
+    <h1>Department of<br>Computer Applications</h1>
+    <p>Program schedules, technical events, photo &amp; video archives, and financial records for the BCA department — open to all.</p>
+    <div class="hero-cta"><button class="btn-primary" data-nav="events">Program Schedules</button><button class="btn-ghost" data-nav="gallery">View Galleries</button></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="num">180+</div><div class="lbl">BCA Students</div></div>
+    <div class="stat"><div class="num">${state.events.filter(e=>e.status==='done').length}+</div><div class="lbl">Events Completed</div></div>
+    <div class="stat"><div class="num">8</div><div class="lbl">Faculty Members</div></div>
+    <div class="stat"><div class="num">65+</div><div class="lbl">Lab Systems</div></div>
+  </div>
+  <div class="sec">
+    <div class="sec-head"><div><h2>Upcoming programs</h2><p>Workshops, seminars and technical events.</p></div><span class="viewall" data-nav="events">View all →</span></div>
+    ${upcoming.length===0?`<div class="empty">No upcoming events right now. Check back soon.</div>`:upcoming.map(e=>evRowHtml(e)).join("")}
+  </div>
+  <div class="sec">
+    <div class="sec-head"><div><h2>Already done programs</h2><p>Past events with summaries and highlights.</p></div><span class="viewall" data-nav="events">View archives →</span></div>
+    ${done.length===0?`<div class="empty">No past programs recorded yet.</div>`:done.map(e=>evRowHtml(e)).join("")}
+  </div>
+  <div class="sec">
+    <div class="sec-head"><div><h2>Department galleries</h2><p>Student life, labs and celebrations.</p></div><span class="viewall" data-nav="gallery">Open full gallery →</span></div>
+    ${galPreview.length===0?`<div class="empty">No gallery items yet.</div>`:`<div class="gal-grid">${galPreview.map(g=>galCardHtml(g)).join("")}</div>`}
+  </div>`;
+}
+
+function evRowHtml(e){
+  return `<div class="ev-row">
+    <div class="ev-thumb"><img src="${esc(e.img||'https://placehold.co/300x300/0a1120/7a88a8?text=No+Image')}" alt="${esc(e.title)}" onerror="this.src='https://placehold.co/300x300/0a1120/7a88a8?text=Image+unavailable'"></div>
+    <div class="ev-date">${fmtDate(e.date)}</div>
+    <div class="ev-body"><div class="ev-title">${esc(e.title)}</div><div class="ev-desc">${esc(e.desc||"")}</div></div>
+    <span class="ev-tag ${e.status==='upcoming'?'tag-up':'tag-done'}">${e.status==='upcoming'?'Upcoming':'Completed'}</span>
+    ${state.isAdmin?`<button class="edit-x" data-edit-event="${e.id}">✎</button><button class="del-x" data-del-event="${e.id}">✕</button>`:``}
+  </div>`;
+}
+function galCardHtml(g){
+  return `<div class="gcard">
+    ${state.isAdmin?`<button class="ed" data-edit-gallery="${g.id}">✎</button><button class="rm" data-del-gallery="${g.id}">✕</button>`:``}
+    <div class="mw">${g.type==='video'?`<video src="${esc(g.url)}" controls muted></video>`:`<img src="${esc(g.url)}" alt="${esc(g.title)}" onerror="this.src='https://placehold.co/500x500/0a1120/7a88a8?text=Image+unavailable'">`}</div>
+    <div class="cap"><div class="name">${esc(g.title)}</div><div class="prog">${esc(g.program||"")}</div></div>
+  </div>`;
+}
+
+function renderEvents(){
+  const list=state.events.filter(e=>e.status===state.eventsTab).sort((a,b)=>state.eventsTab==='upcoming'?new Date(a.date)-new Date(b.date):new Date(b.date)-new Date(a.date));
+  return `<div class="sec">
+    <div class="sec-head"><div><h2>Programs &amp; events</h2><p>Upcoming activities and a record of programs already conducted.</p></div>${state.isAdmin?`<button class="add-btn" id="addEventBtn">+ Add Event</button>`:``}</div>
+    <div class="tabs"><button class="tabbtn ${state.eventsTab==='upcoming'?'active':''}" data-etab="upcoming">Upcoming</button><button class="tabbtn ${state.eventsTab==='done'?'active':''}" data-etab="done">Already Done</button></div>
+    ${list.length===0?`<div class="empty">No ${state.eventsTab==='upcoming'?'upcoming':'past'} events yet.</div>`:list.map(e=>evRowHtml(e)).join("")}
+  </div>`;
+}
+
+function renderGallery(){
+  return `<div class="sec">
+    <div class="sec-head"><div><h2>Galleries</h2><p>Photos and videos from department programs, workshops and events.</p></div>${state.isAdmin?`<button class="add-btn" id="addGalleryBtn">+ Add Image / Video</button>`:``}</div>
+    ${state.gallery.length===0?`<div class="empty">No gallery items yet.</div>`:`<div class="gal-grid">${state.gallery.map(g=>galCardHtml(g)).join("")}</div>`}
+  </div>`;
+}
+
+function renderFinance(){
+  const income=state.finance.filter(f=>f.type==='income').reduce((s,f)=>s+Number(f.amount),0);
+  const expense=state.finance.filter(f=>f.type==='expense').reduce((s,f)=>s+Number(f.amount),0);
+  const rows=[...state.finance].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  return `<div class="sec">
+    <div class="sec-head"><div><h2>Financial management</h2><p>Transparent record of department income and expenses.</p></div>${state.isAdmin?`<button class="add-btn" id="addFinanceBtn">+ Add Entry</button>`:``}</div>
+    <div class="fin-row">
+      <div class="fin-cell"><div class="l">Total Income</div><div class="v pos">${fmtMoney(income)}</div></div>
+      <div class="fin-cell"><div class="l">Total Expense</div><div class="v neg">${fmtMoney(expense)}</div></div>
+      <div class="fin-cell"><div class="l">Balance</div><div class="v">${fmtMoney(income-expense)}</div></div>
+    </div>
+    ${rows.length===0?`<div class="empty">No financial records yet.</div>`:`
+    <table><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th>${state.isAdmin?'<th></th>':''}</tr></thead>
+    <tbody>${rows.map(f=>`<tr><td>${fmtDate(f.date)}</td><td>${esc(f.desc)}</td><td style="text-transform:capitalize">${f.type}</td><td class="${f.type==='income'?'amt-in':'amt-out'}">${f.type==='income'?'+':'-'}${fmtMoney(f.amount)}</td>${state.isAdmin?`<td><button class="edit-x" data-edit-finance="${f.id}">✎</button><button class="del-x" data-del-finance="${f.id}">✕</button></td>`:''}</tr>`).join("")}</tbody></table>`}
+  </div>`;
+}
+
+function renderAbout(){
+  return `<div class="sec">
+    <div class="sec-head"><div><h2>About the department</h2><p>Faculty, facilities and department overview.</p></div></div>
+    <div class="about-grid">
+      <div>
+        <p>The Department of Computer Applications offers an undergraduate BCA program focused on programming, software development, databases and emerging technologies.</p>
+        <p>The department maintains modern computer labs, an active student association, and runs technical fests, workshops and seminars throughout the academic year.</p>
+        <p>Affiliated to University Name. NAAC Accredited institution.</p>
+      </div>
+      <div>
+        <h3 style="font-size:15px; font-weight:500; margin-bottom:14px;">Faculty directory</h3>
+        <div class="fac-grid">
+          <div class="fac-card"><div class="fac-photo">A</div><div class="fac-info"><span>Anupama T</span><span class="role">Head of Department</span></div></div>
+          <div class="fac-card"><div class="fac-photo">S</div><div class="fac-info"><span>Shabna M</span><span class="role">Assistant Professor</span></div></div>
+          <div class="fac-card"><div class="fac-photo">J</div><div class="fac-info"><span>Jinshiya</span><span class="role">Assistant Professor</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderModal(){
+  const m=state.modal;
+  if(m.type==='login') return overlay(`
+    <h3>Admin login</h3>
+    <div class="field"><label>Username</label><input id="loginUser"></div>
+    <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder=""></div>
+    ${state.loginError?`<div class="err-msg">${esc(state.loginError)}</div>`:``}
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="loginSubmit">Log in</button></div>`);
+  if(m.type==='event') return overlay(`
+    <h3>${m.editId?'Edit event':'Add event'}</h3>
+    <div class="field"><label>Title</label><input id="fTitle" placeholder="e.g. Annual Tech Fest" value="${esc(m.data?.title||'')}"></div>
+    <div class="field"><label>Date</label><input id="fDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
+    <div class="field"><label>Description</label><textarea id="fDesc" placeholder="Short description">${esc(m.data?.desc||'')}</textarea></div>
+    <div class="field"><label>Status</label><select id="fStatus"><option value="upcoming" ${m.data?.status==='upcoming'?'selected':''}>Upcoming</option><option value="done" ${m.data?.status==='done'?'selected':''}>Already Done</option></select></div>
+    <div class="field"><label>Image URL</label><input id="fImg" placeholder="https://..." value="${esc(m.data?.img||'')}"></div>
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="eventSubmit">${m.editId?'Save Changes':'Add Event'}</button></div>
+    <div class="hint">Paste a direct image URL. Leave blank for a placeholder.</div>`);
+  if(m.type==='gallery') return overlay(`
+    <h3>${m.editId?'Edit gallery item':'Add gallery item'}</h3>
+    <div class="field"><label>Type</label><select id="gType"><option value="image" ${m.data?.type==='image'?'selected':''}>Image</option><option value="video" ${m.data?.type==='video'?'selected':''}>Video</option></select></div>
+    <div class="field"><label>Media URL</label><input id="gUrl" placeholder="https://..." value="${esc(m.data?.url||'')}"></div>
+    <div class="field"><label>Title</label><input id="gTitle" placeholder="e.g. Orientation Day" value="${esc(m.data?.title||'')}"></div>
+    <div class="field"><label>Program / Event name</label><input id="gProgram" placeholder="e.g. Tech Fest 2026" value="${esc(m.data?.program||'')}"></div>
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="gallerySubmit">${m.editId?'Save Changes':'Add Item'}</button></div>
+    <div class="hint">Paste a direct image/video URL.</div>`);
+  if(m.type==='finance') return overlay(`
+    <h3>${m.editId?'Edit financial entry':'Add financial entry'}</h3>
+    <div class="field"><label>Description</label><input id="finDesc" placeholder="e.g. Lab Fee Collection" value="${esc(m.data?.desc||'')}"></div>
+    <div class="field"><label>Type</label><select id="finType"><option value="income" ${m.data?.type==='income'?'selected':''}>Income</option><option value="expense" ${m.data?.type==='expense'?'selected':''}>Expense</option></select></div>
+    <div class="field"><label>Amount (₹)</label><input id="finAmount" type="number" placeholder="0" value="${m.data?.amount??''}"></div>
+    <div class="field"><label>Date</label><input id="finDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="financeSubmit">${m.editId?'Save Changes':'Add Entry'}</button></div>`);
+}
+function overlay(inner){ return `<div class="overlay" id="overlayBg"><div class="modal">${inner}</div></div>`; }
+

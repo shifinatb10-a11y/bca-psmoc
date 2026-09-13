@@ -11,10 +11,10 @@ function bindEvents(){
   const addReportBtn=document.getElementById('addReportBtn'); if(addReportBtn) addReportBtn.onclick=()=>{ state.modal={type:'report'}; render(); };
   const repDateEl=document.getElementById('repDate'); if(repDateEl) autoSlash(repDateEl);
 
-  document.querySelectorAll('[data-del-event]').forEach(el=>{ el.onclick=async()=>{ await deleteEventRow(el.getAttribute('data-del-event')); await loadAll(); }; });
-  document.querySelectorAll('[data-del-gallery]').forEach(el=>{ el.onclick=async()=>{ await deleteGalleryRow(el.getAttribute('data-del-gallery')); await loadAll(); }; });
-  document.querySelectorAll('[data-del-finance]').forEach(el=>{ el.onclick=async()=>{ await deleteFinanceRow(el.getAttribute('data-del-finance')); await loadAll(); }; });
-  document.querySelectorAll('[data-del-report]').forEach(el=>{ el.onclick=async()=>{ await deleteReportRow(el.getAttribute('data-del-report')); await loadAll(); }; });
+  document.querySelectorAll('[data-del-event]').forEach(el=>{ el.onclick=async()=>{ if(!confirm('Delete this event? This cannot be undone.')) return; await deleteEventRow(el.getAttribute('data-del-event')); await loadAll(); }; });
+  document.querySelectorAll('[data-del-gallery]').forEach(el=>{ el.onclick=async()=>{ if(!confirm('Delete this gallery item? This cannot be undone.')) return; await deleteGalleryRow(el.getAttribute('data-del-gallery')); await loadAll(); }; });
+  document.querySelectorAll('[data-del-finance]').forEach(el=>{ el.onclick=async()=>{ if(!confirm('Delete this financial entry? This cannot be undone.')) return; await deleteFinanceRow(el.getAttribute('data-del-finance')); await loadAll(); }; });
+  document.querySelectorAll('[data-del-report]').forEach(el=>{ el.onclick=async()=>{ if(!confirm('Delete this report? This cannot be undone.')) return; await deleteReportRow(el.getAttribute('data-del-report')); await loadAll(); }; });
 
   document.querySelectorAll('[data-edit-event]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-event'); const data=state.events.find(e=>e.id===id); state.modal={type:'event',editId:id,data}; render(); }; });
   document.querySelectorAll('[data-edit-gallery]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-gallery'); const data=state.gallery.find(g=>g.id===id); state.modal={type:'gallery',editId:id,data}; render(); }; });

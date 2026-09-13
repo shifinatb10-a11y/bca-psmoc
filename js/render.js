@@ -122,8 +122,8 @@ function renderFinance(){
       <div class="fin-cell"><div class="l">Balance</div><div class="v">${fmtMoney(income-expense)}</div></div>
     </div>
     ${rows.length===0?`<div class="empty">No financial records yet.</div>`:`
-    <table><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th>${state.isAdmin?'<th></th>':''}</tr></thead>
-    <tbody>${rows.map(f=>`<tr><td>${fmtDate(f.date)}</td><td>${esc(f.desc)}</td><td style="text-transform:capitalize">${f.type}</td><td class="${f.type==='income'?'amt-in':'amt-out'}">${f.type==='income'?'+':'-'}${fmtMoney(f.amount)}</td>${state.isAdmin?`<td><button class="edit-x" data-edit-finance="${f.id}">✎</button><button class="del-x" data-del-finance="${f.id}">✕</button></td>`:''}</tr>`).join("")}</tbody></table>`}
+    <table><thead><tr><th>Date</th><th>Description</th><th>Given By</th><th>Mode</th><th>Type</th><th>Amount</th>${state.isAdmin?'<th></th>':''}</tr></thead>
+    <tbody>${rows.map(f=>`<tr><td>${fmtDate(f.date)}</td><td>${esc(f.desc)}</td><td>${esc(f.given_by||'—')}</td><td>${esc(f.mode||'—')}</td><td style="text-transform:capitalize">${f.type}</td><td class="${f.type==='income'?'amt-in':'amt-out'}">${f.type==='income'?'+':'-'}${fmtMoney(f.amount)}</td>${state.isAdmin?`<td><button class="edit-x" data-edit-finance="${f.id}">✎</button><button class="del-x" data-del-finance="${f.id}">✕</button></td>`:''}</tr>`).join("")}</tbody></table>`}
   </div>`;
 }
 
@@ -201,6 +201,10 @@ function renderModal(){
     <div class="field"><label>Type</label><select id="finType"><option value="income" ${m.data?.type==='income'?'selected':''}>Income</option><option value="expense" ${m.data?.type==='expense'?'selected':''}>Expense</option></select></div>
     <div class="field"><label>Amount (₹)</label><input id="finAmount" type="number" placeholder="0" value="${m.data?.amount??''}"></div>
     <div class="field"><label>Date</label><input id="finDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
+    <div class="field"><label>Given By</label><input id="finGivenBy" placeholder="e.g. Student name / Department" value="${esc(m.data?.given_by||'')}"></div>
+    <div class="field"><label>Mode of Transaction</label><select id="finMode">
+      ${['Cash','Online Transfer','UPI','Cheque','Card','Other'].map(mo=>`<option ${m.data?.mode===mo?'selected':''}>${mo}</option>`).join("")}
+    </select></div>
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="financeSubmit">${m.editId?'Save Changes':'Add Entry'}</button></div>`);
   if(m.type==='report') return overlay(`
     <h3>${m.editId?'Edit report':'Add report'}</h3>

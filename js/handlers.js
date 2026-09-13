@@ -102,10 +102,13 @@ function bindEvents(){
     const type=document.getElementById('finType').value;
     const amount=Number(document.getElementById('finAmount').value);
     const date=parseDMY(document.getElementById('finDate').value.trim());
+    const given_by=document.getElementById('finGivenBy').value.trim();
+    const mode=document.getElementById('finMode').value;
     if(!desc||!amount||!date) return;
     const editId=state.modal.editId;
-    if(editId) await updateFinanceRow(editId, {desc,type,amount,date});
-    else await saveFinanceRow({desc,type,amount,date});
+    const payload={desc,type,amount,date,given_by,mode};
+    if(editId) await updateFinanceRow(editId, payload);
+    else await saveFinanceRow(payload);
     state.modal=null;
     await loadAll();
   };

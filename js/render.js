@@ -73,10 +73,15 @@ function renderHome(){
 }
 
 function evRowHtml(e){
+  const meta=[e.category, e.venue, e.time_schedule, e.coordinator?`Coordinator: ${e.coordinator}`:'', e.guest_speaker?`Guest: ${e.guest_speaker}`:''].filter(Boolean);
   return `<div class="ev-row">
     <div class="ev-thumb"><img src="${esc(e.img||'https://placehold.co/300x300/0a1120/7a88a8?text=No+Image')}" alt="${esc(e.title)}" onerror="this.src='https://placehold.co/300x300/0a1120/7a88a8?text=Image+unavailable'"></div>
     <div class="ev-date">${fmtDate(e.date)}</div>
-    <div class="ev-body"><div class="ev-title">${esc(e.title)}</div><div class="ev-desc">${esc(e.desc||"")}</div></div>
+    <div class="ev-body">
+      <div class="ev-title">${esc(e.title)}</div>
+      ${meta.length ? `<div class="ev-meta">${meta.map(esc).join(' · ')}</div>` : ''}
+      <div class="ev-desc">${esc(e.desc||"")}</div>
+    </div>
     <span class="ev-tag ${e.status==='upcoming'?'tag-up':'tag-done'}">${e.status==='upcoming'?'Upcoming':'Completed'}</span>
     ${state.isAdmin?`<button class="edit-x" data-edit-event="${e.id}">✎</button><button class="del-x" data-del-event="${e.id}">✕</button>`:``}
   </div>`;
@@ -169,9 +174,16 @@ function renderModal(){
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="loginSubmit">Log in</button></div>`);
   if(m.type==='event') return overlay(`
     <h3>${m.editId?'Edit event':'Add event'}</h3>
-    <div class="field"><label>Title</label><input id="fTitle" placeholder="e.g. Annual Tech Fest" value="${esc(m.data?.title||'')}"></div>
-    <div class="field"><label>Date</label><input id="fDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
-    <div class="field"><label>Description</label><textarea id="fDesc" placeholder="Short description">${esc(m.data?.desc||'')}</textarea></div>
+    <div class="field"><label>Event Title *</label><input id="fTitle" placeholder="e.g. Annual Tech Fest" value="${esc(m.data?.title||'')}"></div>
+    <div class="field"><label>Category</label><select id="fCategory">
+      ${['Workshop','Seminar','Hackathon','Guest Lecture','Fest','Industry Visit','Other'].map(c=>`<option ${m.data?.category===c?'selected':''}>${c}</option>`).join("")}
+    </select></div>
+    <div class="field"><label>Date (dd/mm/yyyy) *</label><input id="fDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
+    <div class="field"><label>Time Schedule</label><input id="fTime" placeholder="e.g. 10:00 AM - 4:00 PM" value="${esc(m.data?.time_schedule||'')}"></div>
+    <div class="field"><label>Venue / Lab Room</label><input id="fVenue" placeholder="e.g. Seminar Hall" value="${esc(m.data?.venue||'')}"></div>
+    <div class="field"><label>Faculty / Student Coordinator</label><input id="fCoordinator" placeholder="e.g. Anupama T" value="${esc(m.data?.coordinator||'')}"></div>
+    <div class="field"><label>Guest Speaker / Jury</label><input id="fGuest" placeholder="Optional" value="${esc(m.data?.guest_speaker||'')}"></div>
+    <div class="field"><label>Description / Scope *</label><textarea id="fDesc" placeholder="Short description">${esc(m.data?.desc||'')}</textarea></div>
     <div class="field"><label>Status</label><select id="fStatus"><option value="upcoming" ${m.data?.status==='upcoming'?'selected':''}>Upcoming</option><option value="done" ${m.data?.status==='done'?'selected':''}>Already Done</option></select></div>
     <div class="field"><label>${m.editId ? 'Replace Image (optional)' : 'Image'}</label><input id="fImgFile" type="file" accept="image/*"></div>
     <div class="hint">${m.editId ? 'Leave empty to keep the current image.' : 'Optional — leave empty for a placeholder.'}</div>

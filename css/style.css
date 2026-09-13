@@ -190,3 +190,12 @@ footer{border-top:1px solid var(--line); padding:40px; font-size:12.5px; color:v
   .hero,.sec,.stats-row,.overlay,.modal{ animation:none; }
   .stat .num,.sidenav .navlink,.btn-primary,.btn-ghost,.add-btn,.admin-btn,.ev-row,.gcard,.gcard .mw img,.gcard .mw video,.fac-card,.ev-thumb img{ transition:none; }
 }
+
+/* ---- lightbox ---- */
+.lightbox-overlay{ background:rgba(2,4,8,0.92); z-index:200; }
+.lightbox-body{ max-width:90vw; max-height:88vh; display:flex; flex-direction:column; align-items:center; gap:14px; }
+.lightbox-body img, .lightbox-body video{ max-width:90vw; max-height:78vh; border-radius:8px; object-fit:contain; }
+.lightbox-cap{ text-align:center; color:var(--text); }
+.lightbox-cap .name{ font-size:15px; font-weight:600; }
+.lightbox-cap .prog{ font-size:12.5px; color:var(--muted); margin-top:2px; }
+.lightbox-close{ position:fixed; top:20px; right:24px; background:transparent; border:none; color:#fff; font-size:26px; z-index:201; }

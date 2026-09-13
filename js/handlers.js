@@ -38,9 +38,20 @@ function bindEvents(){
     const date=parseDMY(document.getElementById('fDate').value.trim());
     const desc=document.getElementById('fDesc').value.trim();
     const status=document.getElementById('fStatus').value;
-    const image_url=document.getElementById('fImg').value.trim() || null;
     if(!title||!date) return;
     const editId=state.modal.editId;
+    const file=document.getElementById('fImgFile').files[0];
+
+    let image_url = state.modal.data?.image_url || null; // keep existing on edit if no new file
+    if(file){
+      eventSubmit.disabled=true; eventSubmit.textContent='Uploading...';
+      const path = `events/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
+      const { error: upErr } = await sb.storage.from('gallery').upload(path, file);
+      if(upErr){ console.error(upErr); alert('Upload failed: '+upErr.message); eventSubmit.disabled=false; eventSubmit.textContent='Add Event'; return; }
+      const { data: pub } = sb.storage.from('gallery').getPublicUrl(path);
+      image_url = pub.publicUrl;
+    }
+
     if(editId) await updateEventRow(editId, {title,date,desc,status,image_url});
     else await saveEventRow({title,date,desc,status,image_url});
     state.modal=null; state.page='events'; state.eventsTab=status;

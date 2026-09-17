@@ -1,5 +1,6 @@
 const ADMINS = [
   { username: "Admin@BCA.com",    password: "bca_100110",  role: "super"   },
+  { username: "Test@Admin.com",   password: "test_123",    role: "super"   },
   { username: "Media@Admin.com",   password: "Media@208",   role: "media"   },
   { username: "Finance@Admin.com", password: "Finance@312", role: "finance" },
   { username: "Events@Admin.com",  password: "Events@439",  role: "events"  }

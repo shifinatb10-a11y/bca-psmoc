@@ -3,7 +3,7 @@ async function loadAll(){
     const [evRes, galRes, finRes, repRes] = await Promise.all([
       sb.from('events').select('*').order('date', {ascending:true}),
       sb.from('gallery').select('*').order('created_at', {ascending:false}),
-      state.isAdmin
+      canViewPage('finance')
         ? sb.from('finance').select('*').order('date', {ascending:false})
         : Promise.resolve({data:[], error:null}),
       sb.from('reports').select('*').order('date', {ascending:false})

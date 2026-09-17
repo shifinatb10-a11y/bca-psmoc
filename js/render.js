@@ -8,10 +8,10 @@ function render(){
         <div class="brand"><div class="brand-mark"></div><div class="brand-text"><div class="t1">PSMO College (Autonomous)</div><div class="t2">BCA DEPARTMENT</div></div></div>
         <div class="sidenav">
           ${sideLink('home','Home')}
-          ${sideLink('events','Programs & Events')}
-          ${sideLink('gallery','Galleries')}
-          ${sideLink('reports','Reports')}
-          ${state.isAdmin ? sideLink('finance','Finance') : ''}
+          ${canViewPage('events') ? sideLink('events','Programs & Events') : ''}
+          ${canViewPage('gallery') ? sideLink('gallery','Galleries') : ''}
+          ${canViewPage('reports') ? sideLink('reports','Reports') : ''}
+          ${canViewPage('finance') ? sideLink('finance','Finance') : ''}
           ${sideLink('about','About Department')}
         </div>
       </div>
@@ -20,7 +20,7 @@ function render(){
       </div>
     </aside>
     <div class="main">
-      ${state.isAdmin ? `<div class="admin-bar">Logged in as <b>Admin</b> — manage events, gallery and finance.</div>` : ``}
+      ${state.isAdmin ? `<div class="admin-bar">Logged in as <b>${adminLabel()}</b>${adminScopeNote()}</div>` : ``}
       ${renderPage()}
       <footer><div>© 2026 BCA Department, PSMO College (Autonomous).</div><div>Designed for BCA Students &amp; Faculty</div></footer>
     </div>
@@ -31,11 +31,25 @@ function render(){
 }
 function sideLink(page,label){ return `<div class="navlink ${state.page===page?'active':''}" data-nav="${page}"><span class="dot"></span>${label}</div>`; }
 
+function adminLabel(){
+  return { super:'Admin', media:'Media Admin', finance:'Finance Admin', events:'Events Admin' }[state.role] || 'Admin';
+}
+function adminScopeNote(){
+  const notes = {
+    super: ' — manage events, gallery, finance and reports.',
+    media: ' — manage gallery only.',
+    finance: ' — manage finance only.',
+    events: ' — manage events and reports only.'
+  };
+  return notes[state.role] || '';
+}
+
 function renderPage(){
+  if(!canViewPage(state.page)) state.page='home';
   if(state.page==='home') return renderHome();
   if(state.page==='events') return renderEvents();
   if(state.page==='gallery') return renderGallery();
-  if(state.page==='finance') return state.isAdmin ? renderFinance() : renderHome();
+  if(state.page==='finance') return renderFinance();
   if(state.page==='reports') return renderReports();
   if(state.page==='about') return renderAbout();
   return "";
@@ -83,12 +97,12 @@ function evRowHtml(e){
       <div class="ev-desc">${esc(e.desc||"")}</div>
     </div>
     <span class="ev-tag ${e.status==='upcoming'?'tag-up':'tag-done'}">${e.status==='upcoming'?'Upcoming':'Completed'}</span>
-    ${state.isAdmin?`<button class="edit-x" data-edit-event="${e.id}">✎</button><button class="del-x" data-del-event="${e.id}">✕</button>`:``}
+    ${canManage('events')?`<button class="edit-x" data-edit-event="${e.id}">✎</button><button class="del-x" data-del-event="${e.id}">✕</button>`:``}
   </div>`;
 }
 function galCardHtml(g){
   return `<div class="gcard">
-    ${state.isAdmin?`<button class="ed" data-edit-gallery="${g.id}">✎</button><button class="rm" data-del-gallery="${g.id}">✕</button>`:``}
+    ${canManage('gallery')?`<button class="ed" data-edit-gallery="${g.id}">✎</button><button class="rm" data-del-gallery="${g.id}">✕</button>`:``}
     <div class="mw" data-open-gallery="${g.id}" style="cursor:pointer">${g.type==='video'?`<video src="${esc(g.url)}" muted></video>`:`<img src="${esc(g.url)}" alt="${esc(g.title)}" onerror="this.src='https://placehold.co/500x500/0a1120/7a88a8?text=Image+unavailable'">`}</div>
     <div class="cap"><div class="name">${esc(g.title)}</div><div class="prog">${esc(g.program||"")}</div></div>
   </div>`;
@@ -97,7 +111,7 @@ function galCardHtml(g){
 function renderEvents(){
   const list=state.events.filter(e=>e.status===state.eventsTab).sort((a,b)=>state.eventsTab==='upcoming'?new Date(a.date)-new Date(b.date):new Date(b.date)-new Date(a.date));
   return `<div class="sec">
-    <div class="sec-head"><div><h2>Programs &amp; events</h2><p>Upcoming activities and a record of programs already conducted.</p></div>${state.isAdmin?`<button class="add-btn" id="addEventBtn">+ Add Event</button>`:``}</div>
+    <div class="sec-head"><div><h2>Programs &amp; events</h2><p>Upcoming activities and a record of programs already conducted.</p></div>${canManage('events')?`<button class="add-btn" id="addEventBtn">+ Add Event</button>`:``}</div>
     <div class="tabs"><button class="tabbtn ${state.eventsTab==='upcoming'?'active':''}" data-etab="upcoming">Upcoming</button><button class="tabbtn ${state.eventsTab==='done'?'active':''}" data-etab="done">Already Done</button></div>
     ${list.length===0?`<div class="empty">No ${state.eventsTab==='upcoming'?'upcoming':'past'} events yet.</div>`:list.map(e=>evRowHtml(e)).join("")}
   </div>`;
@@ -105,7 +119,7 @@ function renderEvents(){
 
 function renderGallery(){
   return `<div class="sec">
-    <div class="sec-head"><div><h2>Galleries</h2><p>Photos and videos from department programs, workshops and events.</p></div>${state.isAdmin?`<button class="add-btn" id="addGalleryBtn">+ Add Image / Video</button>`:``}</div>
+    <div class="sec-head"><div><h2>Galleries</h2><p>Photos and videos from department programs, workshops and events.</p></div>${canManage('gallery')?`<button class="add-btn" id="addGalleryBtn">+ Add Image / Video</button>`:``}</div>
     ${state.gallery.length===0?`<div class="empty">No gallery items yet.</div>`:`<div class="gal-grid">${state.gallery.map(g=>galCardHtml(g)).join("")}</div>`}
   </div>`;
 }
@@ -115,29 +129,29 @@ function renderFinance(){
   const expense=state.finance.filter(f=>f.type==='expense').reduce((s,f)=>s+Number(f.amount),0);
   const rows=[...state.finance].sort((a,b)=>new Date(b.date)-new Date(a.date));
   return `<div class="sec">
-    <div class="sec-head"><div><h2>Financial management</h2><p>Transparent record of department income and expenses.</p></div>${state.isAdmin?`<button class="add-btn" id="addFinanceBtn">+ Add Entry</button>`:``}</div>
+    <div class="sec-head"><div><h2>Financial management</h2><p>Transparent record of department income and expenses.</p></div>${canManage('finance')?`<button class="add-btn" id="addFinanceBtn">+ Add Entry</button>`:``}</div>
     <div class="fin-row">
       <div class="fin-cell"><div class="l">Total Income</div><div class="v pos">${fmtMoney(income)}</div></div>
       <div class="fin-cell"><div class="l">Total Expense</div><div class="v neg">${fmtMoney(expense)}</div></div>
       <div class="fin-cell"><div class="l">Balance</div><div class="v">${fmtMoney(income-expense)}</div></div>
     </div>
     ${rows.length===0?`<div class="empty">No financial records yet.</div>`:`
-    <table><thead><tr><th>Date</th><th>Description</th><th>Given By / To</th><th>Mode</th><th>Type</th><th>Amount</th>${state.isAdmin?'<th></th>':''}</tr></thead>
-    <tbody>${rows.map(f=>`<tr><td>${fmtDate(f.date)}</td><td>${esc(f.desc)}</td><td>${esc(f.given_by||'—')}</td><td>${esc(f.mode||'—')}</td><td style="text-transform:capitalize">${f.type}</td><td class="${f.type==='income'?'amt-in':'amt-out'}">${f.type==='income'?'+':'-'}${fmtMoney(f.amount)}</td>${state.isAdmin?`<td><button class="edit-x" data-edit-finance="${f.id}">✎</button><button class="del-x" data-del-finance="${f.id}">✕</button></td>`:''}</tr>`).join("")}</tbody></table>`}
+    <table><thead><tr><th>Date</th><th>Description</th><th>Given By / To</th><th>Mode</th><th>Type</th><th>Amount</th>${canManage('finance')?'<th></th>':''}</tr></thead>
+    <tbody>${rows.map(f=>`<tr><td>${fmtDate(f.date)}</td><td>${esc(f.desc)}</td><td>${esc(f.given_by||'—')}</td><td>${esc(f.mode||'—')}</td><td style="text-transform:capitalize">${f.type}</td><td class="${f.type==='income'?'amt-in':'amt-out'}">${f.type==='income'?'+':'-'}${fmtMoney(f.amount)}</td>${canManage('finance')?`<td><button class="edit-x" data-edit-finance="${f.id}">✎</button><button class="del-x" data-del-finance="${f.id}">✕</button></td>`:''}</tr>`).join("")}</tbody></table>`}
   </div>`;
 }
 
 function renderReports(){
   const rows=[...state.reports].sort((a,b)=>new Date(b.date)-new Date(a.date));
   return `<div class="sec">
-    <div class="sec-head"><div><h2>Reports</h2><p>Department reports and official documents.</p></div>${state.isAdmin?`<button class="add-btn" id="addReportBtn">+ Add Report</button>`:``}</div>
+    <div class="sec-head"><div><h2>Reports</h2><p>Department reports and official documents.</p></div>${canManage('reports')?`<button class="add-btn" id="addReportBtn">+ Add Report</button>`:``}</div>
     ${rows.length===0?`<div class="empty">No reports published yet.</div>`:`
     <div class="event-list">
       ${rows.map(r=>`<div class="ev-row">
         <div class="ev-date">${fmtDate(r.date)}</div>
         <div class="ev-body"><div class="ev-title">${esc(r.title)}</div><div class="ev-desc">${esc(r.desc||"")}</div></div>
         ${r.file_url ? `<a class="btn-ghost" style="padding:8px 16px; font-size:13px;" href="${esc(r.file_url)}" target="_blank" rel="noopener">View</a>` : ``}
-        ${state.isAdmin?`<button class="edit-x" data-edit-report="${r.id}">✎</button><button class="del-x" data-del-report="${r.id}">✕</button>`:``}
+        ${canManage('reports')?`<button class="edit-x" data-edit-report="${r.id}">✎</button><button class="del-x" data-del-report="${r.id}">✕</button>`:``}
       </div>`).join("")}
     </div>`}
   </div>`;

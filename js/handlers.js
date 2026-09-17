@@ -1,7 +1,7 @@
 function bindEvents(){
   document.querySelectorAll('[data-nav]').forEach(el=>{ el.onclick=()=>{ state.page=el.getAttribute('data-nav'); if(state.page==='finance' && state.isAdmin) loadAll(); else render(); }; });
   const openLogin=document.getElementById('openLogin'); if(openLogin) openLogin.onclick=()=>{ state.modal={type:'login'}; state.loginError=""; render(); };
-  const logoutBtn=document.getElementById('logoutBtn'); if(logoutBtn) logoutBtn.onclick=()=>{ state.isAdmin=false; if(state.page==='finance') state.page='home'; render(); };
+  const logoutBtn=document.getElementById('logoutBtn'); if(logoutBtn) logoutBtn.onclick=()=>{ state.isAdmin=false; state.role=null; if(!canViewPage(state.page)) state.page='home'; render(); };
   document.querySelectorAll('[data-etab]').forEach(el=>{ el.onclick=()=>{ state.eventsTab=el.getAttribute('data-etab'); render(); }; });
   const addEventBtn=document.getElementById('addEventBtn'); if(addEventBtn) addEventBtn.onclick=()=>{ state.modal={type:'event'}; render(); };
   const fDateEl=document.getElementById('fDate'); if(fDateEl) autoSlash(fDateEl);
@@ -36,8 +36,10 @@ function bindEvents(){
   if(loginSubmit) loginSubmit.onclick=async()=>{
     const u=document.getElementById('loginUser').value.trim();
     const p=document.getElementById('loginPass').value;
-    if(u===DEFAULT_ADMIN.username && p===DEFAULT_ADMIN.password){
-      state.isAdmin=true; state.modal=null; state.loginError="";
+    const match=ADMINS.find(a=>a.username===u && a.password===p);
+    if(match){
+      state.isAdmin=true; state.role=match.role; state.modal=null; state.loginError="";
+      if(!canViewPage(state.page)) state.page='home';
       await loadAll(); // re-fetch so finance rows load now that isAdmin is true
     } else { state.loginError="Incorrect username or password."; render(); }
   };

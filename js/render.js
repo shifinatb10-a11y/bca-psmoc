@@ -25,3 +25,18 @@ function renderAbout(){
     </div>
   </div>`;
 }
+
+  if(m.type==='report') return overlay(`
+    ...existing report modal html...
+    </div>`);
+  
+  if(m.type==='faculty') return overlay(`
+    <h3>${m.editId?'Edit faculty':'Add faculty'}</h3>
+    <div class="field"><label>Name</label><input id="facName" placeholder="e.g. Anupama T" value="${esc(m.data?.name||'')}"></div>
+    <div class="field"><label>Role / Title</label><input id="facRole" placeholder="e.g. Head of Department" value="${esc(m.data?.role_title||'')}"></div>
+    <div class="field"><label>${m.editId?'Replace Photo (optional)':'Photo (optional)'}</label><input id="facFile" type="file" accept="image/*"></div>
+    ${m.editId?`<div class="hint">Leave file empty to keep current photo.</div>`:``}
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="facultySubmit">${m.editId?'Save Changes':'Add Faculty'}</button></div>`);
+
+  if(m.type==='lightbox') return `<div class="overlay lightbox-overlay" id="overlayBg">
+    ...existing lightbox html...

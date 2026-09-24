@@ -238,3 +238,33 @@ if (loginSubmit) {
   state.role = data.role;
 }
 
+const addFacultyBtn=document.getElementById('addFacultyBtn'); if(addFacultyBtn) addFacultyBtn.onclick=()=>{ state.modal={type:'faculty'}; render(); };
+
+document.querySelectorAll('[data-del-faculty]').forEach(el=>{ el.onclick=async()=>{ if(!confirm('Delete this faculty member? This cannot be undone.')) return; await deleteFacultyRow(el.getAttribute('data-del-faculty')); await loadAll(); }; });
+
+document.querySelectorAll('[data-edit-faculty]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-faculty'); const data=state.faculty.find(f=>f.id===id); state.modal={type:'faculty',editId:id,data}; render(); }; });
+
+const facultySubmit=document.getElementById('facultySubmit');
+if(facultySubmit) facultySubmit.onclick=async()=>{
+  const name=document.getElementById('facName').value.trim();
+  const role_title=document.getElementById('facRole').value.trim();
+  if(!name) return;
+  const editId=state.modal.editId;
+  const file=document.getElementById('facFile').files[0];
+
+  let photo_url = state.modal.data?.photo_url || null;
+  if(file){
+    facultySubmit.disabled=true; facultySubmit.textContent='Uploading...';
+    const path = `faculty/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
+    const { error: upErr } = await sb.storage.from('gallery').upload(path, file);
+    if(upErr){ console.error(upErr); alert('Upload failed: '+upErr.message); facultySubmit.disabled=false; facultySubmit.textContent='Add Faculty'; return; }
+    const { data: pub } = sb.storage.from('gallery').getPublicUrl(path);
+    photo_url = pub.publicUrl;
+  }
+
+  const payload={name,role_title,photo_url};
+  if(editId) await updateFacultyRow(editId, payload);
+  else await saveFacultyRow(payload);
+  state.modal=null;
+  await loadAll();
+};

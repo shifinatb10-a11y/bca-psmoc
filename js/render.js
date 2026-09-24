@@ -182,7 +182,15 @@ function renderModal(){
   const m=state.modal;
   if(m.type==='login') return overlay(`
     <h3>Admin login</h3>
-    <div class="field"><label>Username</label><input id="loginUser"></div>
+    <div class="field">
+  <label>Email</label>
+  <input
+    id="loginUser"
+    type="email"
+    autocomplete="email"
+    placeholder="admin@example.com"
+  >
+</div>
     <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder=""></div>
     ${state.loginError?`<div class="err-msg">${esc(state.loginError)}</div>`:``}
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="loginSubmit">Log in</button></div>`);

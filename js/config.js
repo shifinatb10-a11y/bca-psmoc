@@ -1,6 +1,4 @@
 
-let state = { page:"home", eventsTab:"upcoming", isAdmin:false, role:null, loading:true, modal:null, loginError:"", events:[], gallery:[], finance:[], reports:[] };
-
 // section: 'events' | 'gallery' | 'finance' | 'reports'
 function canManage(section){
   if(!state.isAdmin) return false;

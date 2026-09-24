@@ -1,7 +1,27 @@
 function bindEvents(){
   document.querySelectorAll('[data-nav]').forEach(el=>{ el.onclick=()=>{ state.page=el.getAttribute('data-nav'); if(state.page==='finance' && state.isAdmin) loadAll(); else render(); }; });
   const openLogin=document.getElementById('openLogin'); if(openLogin) openLogin.onclick=()=>{ state.modal={type:'login'}; state.loginError=""; render(); };
-  const logoutBtn=document.getElementById('logoutBtn'); if(logoutBtn) logoutBtn.onclick=()=>{ state.isAdmin=false; state.role=null; if(!canViewPage(state.page)) state.page='home'; render(); };
+  const logoutBtn = document.getElementById('logoutBtn');
+
+if (logoutBtn) {
+  logoutBtn.onclick = async () => {
+    const { error } = await sb.auth.signOut({ scope: 'local' });
+
+    if (error) {
+      console.error('Logout error:', error);
+      alert('Logout failed. Please try again.');
+      return;
+    }
+
+    state.isAdmin = false;
+    state.role = null;
+    state.user = null;
+    state.page = 'home';
+    state.modal = null;
+
+    render();
+  };
+}
   document.querySelectorAll('[data-etab]').forEach(el=>{ el.onclick=()=>{ state.eventsTab=el.getAttribute('data-etab'); render(); }; });
   const addEventBtn=document.getElementById('addEventBtn'); if(addEventBtn) addEventBtn.onclick=()=>{ state.modal={type:'event'}; render(); };
   const fDateEl=document.getElementById('fDate'); if(fDateEl) autoSlash(fDateEl);
@@ -32,17 +52,59 @@ function bindEvents(){
   const overlayBg=document.getElementById('overlayBg'); if(overlayBg) overlayBg.onclick=(ev)=>{ if(ev.target.id==='overlayBg'){ state.modal=null; render(); } };
   const modalCancel=document.getElementById('modalCancel'); if(modalCancel) modalCancel.onclick=()=>{ state.modal=null; render(); };
 
-  const loginSubmit=document.getElementById('loginSubmit');
-  if(loginSubmit) loginSubmit.onclick=async()=>{
-    const u=document.getElementById('loginUser').value.trim();
-    const p=document.getElementById('loginPass').value;
-    const match=ADMINS.find(a=>a.username===u && a.password===p);
-    if(match){
-      state.isAdmin=true; state.role=match.role; state.modal=null; state.loginError="";
-      if(!canViewPage(state.page)) state.page='home';
-      await loadAll(); // re-fetch so finance rows load now that isAdmin is true
-    } else { state.loginError="Incorrect username or password."; render(); }
+  const loginSubmit = document.getElementById('loginSubmit');
+
+if (loginSubmit) {
+  loginSubmit.onclick = async () => {
+    const email = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+
+    if (!email || !password) {
+      state.loginError = 'Please enter your email and password.';
+      render();
+      return;
+    }
+
+    loginSubmit.disabled = true;
+    loginSubmit.textContent = 'Logging in...';
+
+    const { data, error } = await sb.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      console.error('Login error:', error);
+
+      state.loginError = 'Incorrect email or password.';
+      render();
+      return;
+    }
+
+    state.user = data.user;
+    state.isAdmin = true;
+    state.modal = null;
+    state.loginError = '';
+
+    // Load the user's role from the admin_users table.
+    if (typeof loadUserRole === 'function') {
+      await loadUserRole();
+    }
+
+    if (!state.isAdmin) {
+      state.loginError = 'This account is not authorized as an administrator.';
+      await sb.auth.signOut({ scope: 'local' });
+      render();
+      return;
+    }
+
+    if (!canViewPage(state.page)) {
+      state.page = 'home';
+    }
+
+    await loadAll();
   };
+}
 
   const eventSubmit=document.getElementById('eventSubmit');
   if(eventSubmit) eventSubmit.onclick=async()=>{

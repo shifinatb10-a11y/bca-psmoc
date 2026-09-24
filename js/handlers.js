@@ -3,25 +3,25 @@ function bindEvents(){
   const openLogin=document.getElementById('openLogin'); if(openLogin) openLogin.onclick=()=>{ state.modal={type:'login'}; state.loginError=""; render(); };
   const logoutBtn = document.getElementById('logoutBtn');
 
-if (logoutBtn) {
-  logoutBtn.onclick = async () => {
-    const { error } = await sb.auth.signOut({ scope: 'local' });
+  if (logoutBtn) {
+    logoutBtn.onclick = async () => {
+      const { error } = await sb.auth.signOut({ scope: 'local' });
 
-    if (error) {
-      console.error('Logout error:', error);
-      alert('Logout failed. Please try again.');
-      return;
-    }
+      if (error) {
+        console.error('Logout error:', error);
+        alert('Logout failed. Please try again.');
+        return;
+      }
 
-    state.isAdmin = false;
-    state.role = null;
-    state.user = null;
-    state.page = 'home';
-    state.modal = null;
+      state.isAdmin = false;
+      state.role = null;
+      state.user = null;
+      state.page = 'home';
+      state.modal = null;
 
-    render();
-  };
-}
+      render();
+    };
+  }
   document.querySelectorAll('[data-etab]').forEach(el=>{ el.onclick=()=>{ state.eventsTab=el.getAttribute('data-etab'); render(); }; });
   const addEventBtn=document.getElementById('addEventBtn'); if(addEventBtn) addEventBtn.onclick=()=>{ state.modal={type:'event'}; render(); };
   const fDateEl=document.getElementById('fDate'); if(fDateEl) autoSlash(fDateEl);
@@ -54,57 +54,56 @@ if (logoutBtn) {
 
   const loginSubmit = document.getElementById('loginSubmit');
 
-if (loginSubmit) {
-  loginSubmit.onclick = async () => {
-    const email = document.getElementById('loginUser').value.trim();
-    const password = document.getElementById('loginPass').value;
+  if (loginSubmit) {
+    loginSubmit.onclick = async () => {
+      const email = document.getElementById('loginUser').value.trim();
+      const password = document.getElementById('loginPass').value;
 
-    if (!email || !password) {
-      state.loginError = 'Please enter your email and password.';
-      render();
-      return;
-    }
+      if (!email || !password) {
+        state.loginError = 'Please enter your email and password.';
+        render();
+        return;
+      }
 
-    loginSubmit.disabled = true;
-    loginSubmit.textContent = 'Logging in...';
+      loginSubmit.disabled = true;
+      loginSubmit.textContent = 'Logging in...';
 
-    const { data, error } = await sb.auth.signInWithPassword({
-      email,
-      password
-    });
+      const { data, error } = await sb.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (error) {
-      console.error('Login error:', error);
+      if (error) {
+        console.error('Login error:', error);
 
-      state.loginError = 'Incorrect email or password.';
-      render();
-      return;
-    }
+        state.loginError = 'Incorrect email or password.';
+        render();
+        return;
+      }
 
-    state.user = data.user;
-    state.isAdmin = true;
-    state.modal = null;
-    state.loginError = '';
+      state.user = data.user;
+      state.isAdmin = true;
+      state.modal = null;
+      state.loginError = '';
 
-    // Load the user's role from the admin_users table.
-    if (typeof loadUserRole === 'function') {
-      await loadUserRole();
-    }
+      if (typeof loadUserRole === 'function') {
+        await loadUserRole();
+      }
 
-    if (!state.isAdmin) {
-      state.loginError = 'This account is not authorized as an administrator.';
-      await sb.auth.signOut({ scope: 'local' });
-      render();
-      return;
-    }
+      if (!state.isAdmin) {
+        state.loginError = 'This account is not authorized as an administrator.';
+        await sb.auth.signOut({ scope: 'local' });
+        render();
+        return;
+      }
 
-    if (!canViewPage(state.page)) {
-      state.page = 'home';
-    }
+      if (!canViewPage(state.page)) {
+        state.page = 'home';
+      }
 
-    await loadAll();
-  };
-}
+      await loadAll();
+    };
+  }
 
   const eventSubmit=document.getElementById('eventSubmit');
   if(eventSubmit) eventSubmit.onclick=async()=>{
@@ -121,7 +120,7 @@ if (loginSubmit) {
     const editId=state.modal.editId;
     const file=document.getElementById('fImgFile').files[0];
 
-    let image_url = state.modal.data?.image_url || null; // keep existing on edit if no new file
+    let image_url = state.modal.data?.image_url || null;
     if(file){
       eventSubmit.disabled=true; eventSubmit.textContent='Uploading...';
       const path = `events/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
@@ -146,12 +145,12 @@ if (loginSubmit) {
     const file=fileInput.files[0];
     const editId=state.modal.editId;
     if(!title) return;
-    if(!file && !editId) return; // new item needs a file
+    if(!file && !editId) return;
 
-    let url = state.modal.data?.url; // keep existing on edit if no new file
+    let url = state.modal.data?.url;
     let type = state.modal.data?.type || 'image';
     if(file){
-      type = file.type.startsWith('video/') ? 'video' : 'image'; // detect from actual file, not the dropdown
+      type = file.type.startsWith('video/') ? 'video' : 'image';
       gallerySubmit.disabled=true; gallerySubmit.textContent='Uploading...';
       const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
       const { error: upErr } = await sb.storage.from('gallery').upload(path, file);
@@ -192,7 +191,7 @@ if (loginSubmit) {
     const editId=state.modal.editId;
     const file=document.getElementById('repFile').files[0];
 
-    let file_url = state.modal.data?.file_url || null; // keep existing on edit if no new file
+    let file_url = state.modal.data?.file_url || null;
     if(file){
       reportSubmit.disabled=true; reportSubmit.textContent='Uploading...';
       const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
@@ -208,63 +207,34 @@ if (loginSubmit) {
     await loadAll();
   };
 
-  async function loadUserRole() {
-  if (!state.user) {
-    state.isAdmin = false;
-    state.role = null;
-    return;
-  }
+  const addFacultyBtn=document.getElementById('addFacultyBtn'); if(addFacultyBtn) addFacultyBtn.onclick=()=>{ state.modal={type:'faculty'}; render(); };
 
-  const { data, error } = await sb
-    .from('admin_users')
-    .select('role')
-    .eq('user_id', state.user.id)
-    .maybeSingle();
+  document.querySelectorAll('[data-del-faculty]').forEach(el=>{ el.onclick=async()=>{ if(!confirm('Delete this faculty member? This cannot be undone.')) return; await deleteFacultyRow(el.getAttribute('data-del-faculty')); await loadAll(); }; });
 
-  if (error) {
-    console.error('Could not load admin role:', error);
-    state.isAdmin = false;
-    state.role = null;
-    return;
-  }
+  document.querySelectorAll('[data-edit-faculty]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-faculty'); const data=state.faculty.find(f=>f.id===id); state.modal={type:'faculty',editId:id,data}; render(); }; });
 
-  if (!data) {
-    state.isAdmin = false;
-    state.role = null;
-    return;
-  }
+  const facultySubmit=document.getElementById('facultySubmit');
+  if(facultySubmit) facultySubmit.onclick=async()=>{
+    const name=document.getElementById('facName').value.trim();
+    const role_title=document.getElementById('facRole').value.trim();
+    if(!name) return;
+    const editId=state.modal.editId;
+    const file=document.getElementById('facFile').files[0];
 
-  state.isAdmin = true;
-  state.role = data.role;
+    let photo_url = state.modal.data?.photo_url || null;
+    if(file){
+      facultySubmit.disabled=true; facultySubmit.textContent='Uploading...';
+      const path = `faculty/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
+      const { error: upErr } = await sb.storage.from('gallery').upload(path, file);
+      if(upErr){ console.error(upErr); alert('Upload failed: '+upErr.message); facultySubmit.disabled=false; facultySubmit.textContent='Add Faculty'; return; }
+      const { data: pub } = sb.storage.from('gallery').getPublicUrl(path);
+      photo_url = pub.publicUrl;
+    }
+
+    const payload={name,role_title,photo_url};
+    if(editId) await updateFacultyRow(editId, payload);
+    else await saveFacultyRow(payload);
+    state.modal=null;
+    await loadAll();
+  };
 }
-
-const addFacultyBtn=document.getElementById('addFacultyBtn'); if(addFacultyBtn) addFacultyBtn.onclick=()=>{ state.modal={type:'faculty'}; render(); };
-
-document.querySelectorAll('[data-del-faculty]').forEach(el=>{ el.onclick=async()=>{ if(!confirm('Delete this faculty member? This cannot be undone.')) return; await deleteFacultyRow(el.getAttribute('data-del-faculty')); await loadAll(); }; });
-
-document.querySelectorAll('[data-edit-faculty]').forEach(el=>{ el.onclick=()=>{ const id=el.getAttribute('data-edit-faculty'); const data=state.faculty.find(f=>f.id===id); state.modal={type:'faculty',editId:id,data}; render(); }; });
-
-const facultySubmit=document.getElementById('facultySubmit');
-if(facultySubmit) facultySubmit.onclick=async()=>{
-  const name=document.getElementById('facName').value.trim();
-  const role_title=document.getElementById('facRole').value.trim();
-  if(!name) return;
-  const editId=state.modal.editId;
-  const file=document.getElementById('facFile').files[0];
-
-  let photo_url = state.modal.data?.photo_url || null;
-  if(file){
-    facultySubmit.disabled=true; facultySubmit.textContent='Uploading...';
-    const path = `faculty/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
-    const { error: upErr } = await sb.storage.from('gallery').upload(path, file);
-    if(upErr){ console.error(upErr); alert('Upload failed: '+upErr.message); facultySubmit.disabled=false; facultySubmit.textContent='Add Faculty'; return; }
-    const { data: pub } = sb.storage.from('gallery').getPublicUrl(path);
-    photo_url = pub.publicUrl;
-  }
-
-  const payload={name,role_title,photo_url};
-  if(editId) await updateFacultyRow(editId, payload);
-  else await saveFacultyRow(payload);
-  state.modal=null;
-  await loadAll();
-};

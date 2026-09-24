@@ -191,7 +191,14 @@ function renderModal(){
     placeholder="admin@example.com"
   >
 </div>
-    <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder=""></div>
+    <div class="field">
+  <label>Password</label>
+  <input
+    id="loginPass"
+    type="password"
+    autocomplete="current-password"
+  >
+</div>
     ${state.loginError?`<div class="err-msg">${esc(state.loginError)}</div>`:``}
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="loginSubmit">Log in</button></div>`);
   if(m.type==='event') return overlay(`

@@ -1,35 +1,12 @@
-function facCardHtml(f){
-  return `<div class="fac-card">
-    ${canManageFaculty()?`<button class="ed" data-edit-faculty="${f.id}">✎</button><button class="rm" data-del-faculty="${f.id}">✕</button>`:``}
-    <div class="fac-photo">${f.photo_url?`<img src="${esc(f.photo_url)}" alt="${esc(f.name)}">`:esc((f.name||'?')[0])}</div>
-    <div class="fac-info"><span>${esc(f.name)}</span><span class="role">${esc(f.role_title||'')}</span></div>
-  </div>`;
-}
-
-function renderAbout(){
-  return `<div class="sec">
-    <div class="sec-head"><div><h2>About the department</h2><p>Faculty, facilities and department overview.</p></div></div>
-    <div class="about-grid">
-      <div>
-        <p>The Department of Computer Applications offers an undergraduate BCA program focused on programming, software development, databases and emerging technologies.</p>
-        <p>The department maintains modern computer labs, an active student association, and runs technical fests, workshops and seminars throughout the academic year.</p>
-        <p>Affiliated to University Name. NAAC Accredited institution.</p>
-      </div>
-      <div>
-        <h3 style="font-size:15px; font-weight:500; margin-bottom:14px;">Faculty directory</h3>
-        <div class="fac-grid">
-          ${state.faculty.map(f=>facCardHtml(f)).join("")}
-        </div>
-        ${canManageFaculty()?`<button class="add-btn" style="margin-top:14px;" id="addFacultyBtn">+ Add Faculty</button>`:``}
-      </div>
-    </div>
-  </div>`;
-}
-
   if(m.type==='report') return overlay(`
-    ...existing report modal html...
-    </div>`);
-  
+    <h3>${m.editId?'Edit report':'Add report'}</h3>
+    <div class="field"><label>Title</label><input id="repTitle" placeholder="e.g. Annual Activity Report 2026" value="${esc(m.data?.title||'')}"></div>
+    <div class="field"><label>Description</label><textarea id="repDesc" placeholder="Short description">${esc(m.data?.desc||'')}</textarea></div>
+    <div class="field"><label>Date</label><input id="repDate" type="text" placeholder="dd/mm/yyyy" maxlength="10" value="${m.data?fmtDate(m.data.date):''}"></div>
+    <div class="field"><label>${m.editId?'Replace File (optional)':'File (PDF, optional)'}</label><input id="repFile" type="file" accept=".pdf,image/*"></div>
+    ${m.editId ? `<div class="hint">Leave file empty to keep the current file.</div>` : ``}
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="reportSubmit">${m.editId?'Save Changes':'Add Report'}</button></div>`);
+
   if(m.type==='faculty') return overlay(`
     <h3>${m.editId?'Edit faculty':'Add faculty'}</h3>
     <div class="field"><label>Name</label><input id="facName" placeholder="e.g. Anupama T" value="${esc(m.data?.name||'')}"></div>
@@ -39,4 +16,13 @@ function renderAbout(){
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="facultySubmit">${m.editId?'Save Changes':'Add Faculty'}</button></div>`);
 
   if(m.type==='lightbox') return `<div class="overlay lightbox-overlay" id="overlayBg">
-    ...existing lightbox html...
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <div class="lightbox-body">
+      ${m.data.type==='video'
+        ? `<video src="${esc(m.data.url)}" controls autoplay></video>`
+        : `<img src="${esc(m.data.url)}" alt="${esc(m.data.title)}">`}
+      <div class="lightbox-cap"><div class="name">${esc(m.data.title)}</div><div class="prog">${esc(m.data.program||"")}</div></div>
+    </div>
+  </div>`;
+}
+function overlay(inner){ return `<div class="overlay" id="overlayBg"><div class="modal">${inner}</div></div>`; }

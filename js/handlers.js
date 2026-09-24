@@ -56,7 +56,7 @@ if (logoutBtn) {
 
 if (loginSubmit) {
   loginSubmit.onclick = async () => {
-    const email = document.getElementById('loginUser').value.trim();
+    const email = document.getElementById('loginUser').value.trim().toLowerCase();
     const password = document.getElementById('loginPass').value;
 
     if (!email || !password) {
@@ -68,41 +68,53 @@ if (loginSubmit) {
     loginSubmit.disabled = true;
     loginSubmit.textContent = 'Logging in...';
 
-    const { data, error } = await sb.auth.signInWithPassword({
-      email,
-      password
-    });
+    try {
+      const { data, error } = await sb.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (error) {
-      console.error('Login error:', error);
+      if (error) {
+        console.error('Login error:', error);
+        const msg = (error.message || '').toLowerCase();
+        if (msg.includes('email not confirmed')) {
+          state.loginError = 'Email not confirmed. Please verify your email first.';
+        } else if (msg.includes('invalid login credentials')) {
+          state.loginError = 'Incorrect email or password.';
+        } else if (msg.includes('failed to fetch') || msg.includes('network') || msg.includes('fetch')) {
+          state.loginError = 'Network error. Please check your internet connection and try again.';
+        } else {
+          state.loginError = 'Login failed due to a configuration or service error. Please try again later.';
+        }
+        render();
+        return;
+      }
 
-      state.loginError = 'Incorrect email or password.';
-      render();
-      return;
+      state.user = data.user || null;
+      state.isAdmin = false;
+      state.role = null;
+
+      const roleResult = await loadUserRole();
+      if (!roleResult.ok) {
+        if (roleResult.reason === 'missing_role') {
+          state.loginError = 'Login succeeded, but this user is not assigned in admin_users.';
+        } else {
+          state.loginError = 'Login succeeded, but admin role lookup failed. Please try again.';
+        }
+        await sb.auth.signOut({ scope: 'local' });
+        state.user = null;
+        render();
+        return;
+      }
+
+      state.modal = null;
+      state.loginError = '';
+      if (!canViewPage(state.page)) state.page = 'home';
+      await loadAll();
+    } finally {
+      loginSubmit.disabled = false;
+      loginSubmit.textContent = 'Log in';
     }
-
-    state.user = data.user;
-    state.isAdmin = true;
-    state.modal = null;
-    state.loginError = '';
-
-    // Load the user's role from the admin_users table.
-    if (typeof loadUserRole === 'function') {
-      await loadUserRole();
-    }
-
-    if (!state.isAdmin) {
-      state.loginError = 'This account is not authorized as an administrator.';
-      await sb.auth.signOut({ scope: 'local' });
-      render();
-      return;
-    }
-
-    if (!canViewPage(state.page)) {
-      state.page = 'home';
-    }
-
-    await loadAll();
   };
 }
 
@@ -207,34 +219,4 @@ if (loginSubmit) {
     state.modal=null; state.page='reports';
     await loadAll();
   };
-
-  async function loadUserRole() {
-  if (!state.user) {
-    state.isAdmin = false;
-    state.role = null;
-    return;
-  }
-
-  const { data, error } = await sb
-    .from('admin_users')
-    .select('role')
-    .eq('user_id', state.user.id)
-    .maybeSingle();
-
-  if (error) {
-    console.error('Could not load admin role:', error);
-    state.isAdmin = false;
-    state.role = null;
-    return;
-  }
-
-  if (!data) {
-    state.isAdmin = false;
-    state.role = null;
-    return;
-  }
-
-  state.isAdmin = true;
-  state.role = data.role;
 }
-

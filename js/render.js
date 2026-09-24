@@ -69,7 +69,7 @@ function renderHome(){
   <div class="stats-row">
     <div class="stat"><div class="num">120+</div><div class="lbl">BCA Students</div></div>
     <div class="stat"><div class="num">${state.events.filter(e=>e.status==='done').length}+</div><div class="lbl">Events Completed</div></div>
-    <div class="stat"><div class="num">3</div><div class="lbl">Faculty Members</div></div>
+    <div class="stat"><div class="num">${state.faculty.length || 0}</div><div class="lbl">Faculty Members</div></div>
     <div class="stat"><div class="num">60+</div><div class="lbl">Lab Systems</div></div>
   </div>
   <div class="sec">
@@ -105,6 +105,15 @@ function galCardHtml(g){
     ${canManage('gallery')?`<button class="ed" data-edit-gallery="${g.id}">✎</button><button class="rm" data-del-gallery="${g.id}">✕</button>`:``}
     <div class="mw" data-open-gallery="${g.id}" style="cursor:pointer">${g.type==='video'?`<video src="${esc(g.url)}" muted></video>`:`<img src="${esc(g.url)}" alt="${esc(g.title)}" onerror="this.src='https://placehold.co/500x500/0a1120/7a88a8?text=Image+unavailable'">`}</div>
     <div class="cap"><div class="name">${esc(g.title)}</div><div class="prog">${esc(g.program||"")}</div></div>
+  </div>`;
+}
+
+function facCardHtml(f) {
+  const initial = esc((f.name || '?').trim().charAt(0).toUpperCase() || '?');
+  return `<div class="fac-card">
+    <div class="fac-photo">${f.photo_url ? `<img src="${esc(f.photo_url)}" alt="${esc(f.name)}" onerror="this.closest('.fac-photo').innerHTML='${initial}'">` : initial}</div>
+    ${canManage('faculty') ? `<button class="edit-x" data-edit-faculty="${f.id}">✎</button><button class="del-x" data-del-faculty="${f.id}">✕</button>` : ``}
+    <div class="fac-info"><span>${esc(f.name)}</span><span class="role">${esc(f.role)}</span></div>
   </div>`;
 }
 
@@ -167,12 +176,14 @@ function renderAbout(){
         <p>Affiliated to University Name. NAAC Accredited institution.</p>
       </div>
       <div>
-        <h3 style="font-size:15px; font-weight:500; margin-bottom:14px;">Faculty directory</h3>
-        <div class="fac-grid">
-          <div class="fac-card"><div class="fac-photo">A</div><div class="fac-info"><span>Anupama T</span><span class="role">Head of Department</span></div></div>
-          <div class="fac-card"><div class="fac-photo">S</div><div class="fac-info"><span>Shabna M</span><span class="role">Assistant Professor</span></div></div>
-          <div class="fac-card"><div class="fac-photo">J</div><div class="fac-info"><span>Jinshiya</span><span class="role">Assistant Professor</span></div></div>
+        <div class="sec-head fac-head">
+          <h3 style="font-size:15px; font-weight:500; margin-bottom:0;">Faculty directory</h3>
+          ${canManage('faculty') ? `<button class="add-btn" id="addFacultyBtn">+ Add Faculty</button>` : ``}
         </div>
+        ${state.facultyError ? `<div class="err-msg">${esc(state.facultyError)}</div>` : ''}
+        ${state.faculty.length === 0
+          ? `<div class="empty">No faculty members added yet.</div>`
+          : `<div class="fac-grid">${state.faculty.map(f => facCardHtml(f)).join('')}</div>`}
       </div>
     </div>
   </div>`;
@@ -224,6 +235,15 @@ function renderModal(){
     <div class="field"><label>Title</label><input id="gTitle" placeholder="e.g. Orientation Day" value="${esc(m.data?.title||'')}"></div>
     <div class="field"><label>Program / Event name</label><input id="gProgram" placeholder="e.g. Tech Fest 2026" value="${esc(m.data?.program||'')}"></div>
     <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="gallerySubmit">${m.editId?'Save Changes':'Add Item'}</button></div>`);
+  if(m.type==='faculty') return overlay(`
+    <h3>${m.editId?'Edit faculty member':'Add faculty member'}</h3>
+    <div class="field"><label>Name *</label><input id="facultyName" placeholder="e.g. Anupama T" value="${esc(m.data?.name||'')}"></div>
+    <div class="field"><label>Role *</label><input id="facultyRole" placeholder="e.g. Head of Department" value="${esc(m.data?.role||'')}"></div>
+    <div class="field"><label>${m.editId?'Replace Photo (optional)':'Photo (optional)'}</label><input id="facultyPhoto" type="file" accept="image/*"></div>
+    <div class="hint">Accepted image formats only. Maximum file size: 5MB.</div>
+    ${m.error ? `<div class="err-msg">${esc(m.error)}</div>` : ``}
+    <div class="modal-actions"><button class="btn-cancel" id="modalCancel">Cancel</button><button class="btn-primary" id="facultySubmit">${m.editId?'Save Changes':'Add Faculty'}</button></div>`);
+
   if(m.type==='finance') return overlay(`
     <h3>${m.editId?'Edit financial entry':'Add financial entry'}</h3>
     <div class="field"><label>Description</label><input id="finDesc" placeholder="e.g. Lab Fee Collection" value="${esc(m.data?.desc||'')}"></div>

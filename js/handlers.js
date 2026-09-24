@@ -207,34 +207,4 @@ if (loginSubmit) {
     state.modal=null; state.page='reports';
     await loadAll();
   };
-
-  async function loadUserRole() {
-  if (!state.user) {
-    state.isAdmin = false;
-    state.role = null;
-    return;
-  }
-
-  const { data, error } = await sb
-    .from('admin_users')
-    .select('role')
-    .eq('user_id', state.user.id)
-    .maybeSingle();
-
-  if (error) {
-    console.error('Could not load admin role:', error);
-    state.isAdmin = false;
-    state.role = null;
-    return;
-  }
-
-  if (!data) {
-    state.isAdmin = false;
-    state.role = null;
-    return;
-  }
-
-  state.isAdmin = true;
-  state.role = data.role;
 }
-

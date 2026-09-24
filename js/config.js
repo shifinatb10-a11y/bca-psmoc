@@ -1,6 +1,4 @@
 
-let state = { page:"home", eventsTab:"upcoming", isAdmin:false, role:null, loading:true, modal:null, loginError:"", events:[], gallery:[], finance:[], reports:[] };
-
 // section: 'events' | 'gallery' | 'finance' | 'reports'
 function canManage(section){
   if(!state.isAdmin) return false;
@@ -47,7 +45,7 @@ async function loadUserRole() {
   if (!state.user) {
     state.isAdmin = false;
     state.role = null;
-    return;
+    return { ok: false, reason: 'no_user' };
   }
 
   const { data, error } = await sb
@@ -60,9 +58,10 @@ async function loadUserRole() {
     console.error('Could not load admin role:', error);
     state.isAdmin = false;
     state.role = null;
-    return;
+    return { ok: false, reason: error ? 'lookup_error' : 'missing_role' };
   }
 
   state.isAdmin = true;
   state.role = data.role;
+  return { ok: true, role: data.role };
 }

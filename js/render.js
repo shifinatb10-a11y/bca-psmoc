@@ -171,7 +171,7 @@ function renderAbout(){
       <div>
         <p>The Department of Computer Applications offers an undergraduate BCA program focused on programming, software development, databases and emerging technologies.</p>
         <p>The department maintains modern computer labs, an active student association, and runs technical fests, workshops and seminars throughout the academic year.</p>
-        <p>Affiliated to University Name. NAAC Accredited institution.</p>
+        <p>Affiliated to Calicut University. NAAC Accredited institution.</p>
       </div>
       <div>
         <h3 style="font-size:15px; font-weight:500; margin-bottom:14px;">Faculty directory</h3>

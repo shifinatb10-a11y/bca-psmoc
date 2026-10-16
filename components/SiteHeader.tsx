@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, ShieldCheck, X } from "lucide-react";
-import { Crest } from "./Crest";
+import { CollegeLogo } from "./CollegeLogo";
 import { Container } from "./ui";
 import { MAIN_NAV } from "@/lib/nav";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40">
-      <div className="hidden bg-brand-950 text-brand-100 md:block">
+      <div className="hidden bg-gradient-to-r from-brand-950 via-brand-800 to-accent-700 text-brand-100 md:block">
         <Container className="flex h-9 items-center justify-between text-[11.5px] tracking-wide">
           <span>Affiliated to the University of Calicut · NAAC Accredited</span>
           <span className="flex items-center gap-4">
@@ -40,54 +40,62 @@ export function SiteHeader() {
         </Container>
       </div>
 
-      <div className="border-b border-ink-100 bg-white/90 backdrop-blur">
-        <Container className="flex h-16 items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-3">
-            <Crest className="h-10 w-10 shrink-0" />
-            <span className="leading-tight">
-              <span className="block font-display text-[15px] font-semibold text-ink-900 sm:text-base">
-                PSMO College (Autonomous)
-              </span>
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-600">
-                Department of Computer Applications
-              </span>
-            </span>
-          </Link>
-
-          <nav className="hidden items-center gap-1 lg:flex">
-            {MAIN_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
-                  isActive(pathname, item.href)
-                    ? "bg-brand-50 text-brand-700"
-                    : "text-ink-700 hover:bg-ink-50 hover:text-ink-900",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/admin"
-              className="hidden items-center gap-2 rounded-lg border border-ink-100 px-3.5 py-2 text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-700 sm:inline-flex"
-            >
-              <ShieldCheck className="h-4 w-4" />
-              Admin
-            </Link>
+      <div className="glass border-b border-white/40 shadow-[0_8px_30px_-20px_rgba(15,23,42,0.35)]">
+        <Container className="flex h-16 items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setOpen((value) => !value)}
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-ink-100 bg-white text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-700"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-ink-200 bg-white/80 text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-700"
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
+            <Link href="/" className="group flex min-w-0 items-center gap-3">
+              <CollegeLogo className="h-11 w-11 transition-transform duration-300 group-hover:scale-105" />
+              <span className="min-w-0 leading-tight">
+                <span className="block truncate font-display text-[15px] font-semibold text-ink-900 sm:text-base">
+                  PSMO College (Autonomous)
+                </span>
+                <span className="block truncate bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-[11px] font-semibold uppercase tracking-[0.14em] text-transparent">
+                  Department of Computer Applications
+                </span>
+              </span>
+            </Link>
+          </div>
+
+          <nav className="hidden items-center gap-1 lg:flex">
+            {MAIN_NAV.map((item) => {
+              const active = isActive(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "relative rounded-xl px-3.5 py-2 text-sm font-medium transition-colors",
+                    active
+                      ? "text-brand-700"
+                      : "text-ink-700 hover:bg-ink-50 hover:text-ink-900",
+                  )}
+                >
+                  {item.label}
+                  {active ? (
+                    <span className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-gradient-to-r from-brand-500 to-accent-500" />
+                  ) : null}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href="/admin"
+              className="hidden items-center gap-2 rounded-xl border border-ink-200 px-3.5 py-2 text-sm font-semibold text-ink-700 transition-all hover:border-brand-300 hover:text-brand-700 sm:inline-flex"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              Admin
+            </Link>
           </div>
         </Container>
       </div>
@@ -95,7 +103,7 @@ export function SiteHeader() {
       {/* Three-line menu drawer */}
       <div
         className={cn(
-          "fixed inset-0 z-50 lg:hidden",
+          "fixed inset-0 z-50",
           open ? "pointer-events-auto" : "pointer-events-none",
         )}
         aria-hidden={!open}
@@ -109,20 +117,20 @@ export function SiteHeader() {
         />
         <aside
           className={cn(
-            "absolute right-0 top-0 flex h-full w-[86%] max-w-sm flex-col bg-white shadow-2xl transition-transform duration-300 ease-out",
-            open ? "translate-x-0" : "translate-x-full",
+            "absolute left-0 top-0 flex h-full w-[86%] max-w-sm flex-col bg-white shadow-2xl transition-transform duration-300 ease-out",
+            open ? "translate-x-0" : "-translate-x-full",
           )}
         >
-          <div className="flex items-center justify-between border-b border-ink-100 px-5 py-4">
+          <div className="flex items-center justify-between border-b border-ink-100 bg-gradient-to-r from-brand-950 to-accent-700 px-5 py-4 text-white">
             <div className="flex items-center gap-2.5">
-              <Crest className="h-8 w-8" />
-              <span className="text-sm font-semibold text-ink-900">Menu</span>
+              <CollegeLogo className="h-9 w-9" />
+              <span className="text-sm font-semibold">Menu</span>
             </div>
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close menu"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-ink-100 text-ink-500 hover:text-ink-900"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>
@@ -145,7 +153,7 @@ export function SiteHeader() {
                     className={cn(
                       "flex h-10 w-10 items-center justify-center rounded-xl",
                       active
-                        ? "bg-brand-600 text-white"
+                        ? "bg-gradient-to-br from-brand-500 to-accent-500 text-white shadow-glow"
                         : "bg-ink-100 text-ink-700",
                     )}
                   >
@@ -172,7 +180,7 @@ export function SiteHeader() {
           <div className="border-t border-ink-100 p-4">
             <Link
               href="/admin"
-              className="flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-accent-600 px-4 py-3 text-sm font-semibold text-white shadow-glow transition-opacity hover:opacity-90"
             >
               <ShieldCheck className="h-4 w-4" />
               Admin Login

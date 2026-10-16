@@ -4,7 +4,6 @@ import {
   BookOpen,
   Building2,
   GraduationCap,
-  LayoutDashboard,
   Sparkles,
   Users,
 } from "lucide-react";
@@ -17,7 +16,6 @@ import {
 } from "@/lib/queries";
 import { Avatar, Badge, Container, SectionHeading, StatCard } from "@/components/ui";
 import { DocumentActions } from "@/components/DocumentActions";
-import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +49,7 @@ const QUICK_LINKS = [
     description:
       "Previous year question papers and study notes, ready to view or download.",
     icon: BookOpen,
-    accent: "from-sky-400 to-sky-600",
+    accent: "from-accent-500 to-accent-700",
   },
 ];
 
@@ -64,7 +62,7 @@ export default async function DashboardPage() {
     getStudyMaterials(),
   ]);
 
-  const heroImage = settings.hero_image_url || "/college-hero.svg";
+  const heroImage = settings.hero_image_url || "/college-photo.jpg";
   const heroTagline =
     settings.hero_tagline ||
     "Programme details, faculty, student association activities, club events and a complete study zone — all in one place.";
@@ -91,8 +89,22 @@ export default async function DashboardPage() {
           alt="PSMO College (Autonomous), Tirurangadi"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-950 via-brand-950/85 to-brand-950/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-950 via-transparent to-transparent" />
+        {/* Blue duotone blend so the photo sits into the brand colour */}
+        <div className="absolute inset-0 bg-brand-900/55 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-950 via-brand-950/85 to-brand-950/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-950 via-brand-950/25 to-transparent" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-mesh-hero opacity-40 mix-blend-screen"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-brand-500/30 blur-3xl animate-float"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-accent-500/25 blur-3xl animate-float-slow"
+        />
 
         <Container className="relative py-20 sm:py-28 lg:py-32">
           <div className="max-w-3xl animate-in">
@@ -100,21 +112,20 @@ export default async function DashboardPage() {
               <GraduationCap className="h-3.5 w-3.5" />
               PSMO College (Autonomous) · Tirurangadi
             </span>
-            <h1 className="mt-5 font-display text-4xl font-semibold leading-[1.08] text-white sm:text-5xl lg:text-[3.4rem]">
-              Department of
-              <br />
-              Computer Applications
+            <h1 className="mt-5 font-display text-4xl font-semibold leading-[1.06] text-white sm:text-5xl lg:text-[3.6rem]">
+              Department of <br />
+              <span className="text-gradient-light">Computer Applications</span>
             </h1>
-            <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-brand-100/90 sm:text-lg">
+            <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-brand-100/85 sm:text-lg">
               {heroTagline}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/department"
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-800 shadow-lift transition-colors hover:bg-brand-50"
+                className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 px-5 py-3 text-sm font-semibold text-white shadow-lift transition-transform hover:-translate-y-0.5"
               >
                 Explore Department
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 href="/study-zone"
@@ -129,12 +140,12 @@ export default async function DashboardPage() {
       </section>
 
       {/* Stats */}
-      <Container className="-mt-10 relative z-10">
+      <Container className="relative z-10 -mt-12">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          <StatCard value="120+" label="BCA Students" />
-          <StatCard value={faculty.length || "—"} label="Faculty Members" />
-          <StatCard value={associations.length || "—"} label="Associations" />
-          <StatCard value={eventCount} label="Reports & Events" />
+          <StatCard value="120+" label="BCA Students" icon={<GraduationCap className="h-4 w-4" />} />
+          <StatCard value={faculty.length || "—"} label="Faculty Members" icon={<Users className="h-4 w-4" />} />
+          <StatCard value={associations.length || "—"} label="Associations" icon={<Sparkles className="h-4 w-4" />} />
+          <StatCard value={eventCount} label="Reports & Events" icon={<BookOpen className="h-4 w-4" />} />
         </div>
       </Container>
 
@@ -152,10 +163,14 @@ export default async function DashboardPage() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="group flex flex-col rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition-all hover:-translate-y-1 hover:shadow-lift"
+                className="group card-hover relative flex flex-col overflow-hidden rounded-3xl border border-ink-100 bg-white p-6 shadow-card"
               >
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-brand-500/10 to-accent-500/10 blur-2xl transition-opacity group-hover:opacity-100"
+                />
                 <span
-                  className={`mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${link.accent} text-white shadow-sm`}
+                  className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${link.accent} text-white shadow-md transition-transform group-hover:scale-110`}
                 >
                   <Icon className="h-6 w-6" />
                 </span>
@@ -186,7 +201,7 @@ export default async function DashboardPage() {
               action={
                 <Link
                   href="/association"
-                  className="inline-flex items-center gap-2 rounded-xl border border-ink-100 px-4 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-700"
+                  className="inline-flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-700"
                 >
                   All associations
                   <ArrowRight className="h-4 w-4" />
@@ -194,7 +209,7 @@ export default async function DashboardPage() {
               }
             />
             <div className="mt-8 grid gap-6 lg:grid-cols-[320px_1fr]">
-              <div className="overflow-hidden rounded-2xl border border-ink-100 bg-ink-50 shadow-card">
+              <div className="overflow-hidden rounded-3xl border border-ink-100 bg-ink-50 shadow-card">
                 <div className="aspect-[4/5] w-full">
                   <Avatar
                     src={currentAssociation.secretary_photo_url}
@@ -212,7 +227,11 @@ export default async function DashboardPage() {
                   </div>
                 </div>
               </div>
-              <div className="rounded-2xl border border-ink-100 bg-ink-50 p-6 sm:p-8">
+              <div className="relative overflow-hidden rounded-3xl border border-ink-100 bg-gradient-to-br from-ink-50 to-white p-6 sm:p-8">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-accent-500/10 blur-2xl"
+                />
                 <Badge tone="gold">{currentAssociation.year_label}</Badge>
                 <p className="mt-4 text-[15px] leading-relaxed text-ink-700">
                   {currentAssociation.description ||
@@ -220,7 +239,7 @@ export default async function DashboardPage() {
                     "Association details will be published here soon."}
                 </p>
                 <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                  <div className="rounded-xl border border-ink-100 bg-white p-4">
+                  <div className="rounded-2xl border border-ink-100 bg-white p-4">
                     <div className="font-display text-2xl font-semibold text-brand-700">
                       {currentAssociation.reports.length}
                     </div>
@@ -228,7 +247,7 @@ export default async function DashboardPage() {
                       Event reports
                     </div>
                   </div>
-                  <div className="rounded-xl border border-ink-100 bg-white p-4">
+                  <div className="rounded-2xl border border-ink-100 bg-white p-4">
                     <div className="font-display text-2xl font-semibold text-brand-700">
                       {currentAssociation.magazine_url ? "1" : "0"}
                     </div>
@@ -236,7 +255,7 @@ export default async function DashboardPage() {
                       Magazine
                     </div>
                   </div>
-                  <div className="rounded-xl border border-ink-100 bg-white p-4">
+                  <div className="rounded-2xl border border-ink-100 bg-white p-4">
                     <div className="font-display text-2xl font-semibold text-brand-700">
                       {currentAssociation.end_year ?? "—"}
                     </div>
@@ -261,7 +280,7 @@ export default async function DashboardPage() {
             action={
               <Link
                 href="/study-zone"
-                className="inline-flex items-center gap-2 rounded-xl border border-ink-100 px-4 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-700"
+                className="inline-flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-700"
               >
                 Open Study Zone
                 <ArrowRight className="h-4 w-4" />
@@ -272,7 +291,7 @@ export default async function DashboardPage() {
             {recentMaterials.map((material) => (
               <div
                 key={material.id}
-                className="flex flex-col rounded-2xl border border-ink-100 bg-white p-5 shadow-card"
+                className="card-hover flex flex-col rounded-3xl border border-ink-100 bg-white p-5 shadow-card"
               >
                 <Badge tone={material.category === "notes" ? "brand" : "gold"}>
                   {material.category === "notes" ? "Notes" : "Question Paper"}
@@ -300,8 +319,16 @@ export default async function DashboardPage() {
       {club ? (
         <div className="bg-white py-16 sm:py-20">
           <Container>
-            <div className="overflow-hidden rounded-3xl border border-ink-100 bg-gradient-to-br from-brand-950 to-brand-800 p-8 text-white shadow-lift sm:p-12">
-              <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-brand-950 via-brand-800 to-accent-700 p-8 text-white shadow-lift sm:p-12">
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-mesh-hero opacity-40 mix-blend-screen"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-amber-400/20 blur-3xl animate-float"
+              />
+              <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
                 <div className="max-w-2xl">
                   <Badge className="bg-white/10 text-amber-300 ring-white/15">
                     <Sparkles className="h-3.5 w-3.5" />
@@ -310,16 +337,16 @@ export default async function DashboardPage() {
                   <h2 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">
                     {club.name}
                   </h2>
-                  <p className="mt-3 text-[15px] leading-relaxed text-brand-100/90">
+                  <p className="mt-3 text-[15px] leading-relaxed text-brand-100/85">
                     {club.tagline || club.description}
                   </p>
                 </div>
                 <Link
                   href="/club"
-                  className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-800 transition-colors hover:bg-brand-50"
+                  className="group inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-800 transition-transform hover:-translate-y-0.5"
                 >
                   Visit Club
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
             </div>

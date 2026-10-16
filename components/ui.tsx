@@ -22,12 +22,13 @@ export function Badge({
 }: {
   children: ReactNode;
   className?: string;
-  tone?: "brand" | "gold" | "muted";
+  tone?: "brand" | "gold" | "muted" | "accent";
 }) {
   const tones = {
-    brand: "bg-brand-50 text-brand-700 ring-brand-100",
-    gold: "bg-amber-50 text-amber-700 ring-amber-100",
-    muted: "bg-ink-100 text-ink-500 ring-ink-100",
+    brand: "bg-brand-50 text-brand-700 ring-brand-200/70",
+    accent: "bg-accent-50 text-accent-700 ring-accent-200/70",
+    gold: "bg-amber-50 text-amber-700 ring-amber-200/70",
+    muted: "bg-ink-100 text-ink-500 ring-ink-200/70",
   } as const;
   return (
     <span
@@ -48,31 +49,37 @@ export function SectionHeading({
   description,
   action,
   className,
+  align = "left",
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   action?: ReactNode;
   className?: string;
+  align?: "left" | "center";
 }) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
+        "flex flex-col gap-4",
+        align === "center"
+          ? "items-center text-center"
+          : "sm:flex-row sm:items-end sm:justify-between",
         className,
       )}
     >
-      <div className="max-w-2xl">
+      <div className={cn("max-w-2xl", align === "center" && "mx-auto")}>
         {eyebrow ? (
-          <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-600">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-700 ring-1 ring-inset ring-brand-100">
+            <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-brand-500 to-accent-500" />
             {eyebrow}
           </div>
         ) : null}
-        <h2 className="font-display text-2xl font-semibold text-ink-900 sm:text-3xl">
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-[2rem]">
           {title}
         </h2>
         {description ? (
-          <p className="mt-2 text-sm leading-relaxed text-ink-500 sm:text-[15px]">
+          <p className="mt-3 text-sm leading-relaxed text-ink-500 sm:text-[15px]">
             {description}
           </p>
         ) : null}
@@ -94,31 +101,36 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden bg-brand-950 text-white">
+    <section className="relative isolate overflow-hidden bg-brand-950 text-white">
+      <div aria-hidden="true" className="absolute inset-0 bg-mesh-hero opacity-70" />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.35]"
-        style={{
-          backgroundImage:
-            "radial-gradient(600px circle at 12% 10%, rgba(51,102,245,0.55), transparent 60%), radial-gradient(520px circle at 88% 0%, rgba(240,180,41,0.28), transparent 55%)",
-        }}
+        className="absolute -left-24 top-[-6rem] h-72 w-72 rounded-full bg-brand-500/30 blur-3xl animate-float"
       />
-      <Container className="relative py-14 sm:py-20">
-        <div className="max-w-3xl">
+      <div
+        aria-hidden="true"
+        className="absolute -right-16 bottom-[-6rem] h-80 w-80 rounded-full bg-accent-500/25 blur-3xl animate-float-slow"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-grid-faint opacity-[0.12] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"
+      />
+      <Container className="relative py-16 sm:py-24">
+        <div className="max-w-3xl animate-in">
           {eyebrow ? (
-            <div className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-amber-300">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300 backdrop-blur">
               {eyebrow}
             </div>
           ) : null}
-          <h1 className="font-display text-3xl font-semibold leading-tight sm:text-[2.75rem]">
+          <h1 className="font-display text-3xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
             {title}
           </h1>
           {description ? (
-            <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-brand-100/90 sm:text-base">
+            <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-brand-100/85 sm:text-lg">
               {description}
             </p>
           ) : null}
-          {children ? <div className="mt-7">{children}</div> : null}
+          {children ? <div className="mt-8">{children}</div> : null}
         </div>
       </Container>
     </section>
@@ -135,9 +147,15 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-ink-100 bg-white/70 px-6 py-14 text-center">
-      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+    <div className="rounded-3xl border border-dashed border-ink-200 bg-white/70 px-6 py-14 text-center backdrop-blur">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-accent-500 text-white shadow-glow">
+        <svg
+          viewBox="0 0 24 24"
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M4 7h16M4 12h10M4 17h7" strokeLinecap="round" />
         </svg>
       </div>
@@ -155,14 +173,27 @@ export function EmptyState({
 export function StatCard({
   value,
   label,
+  icon,
 }: {
   value: string | number;
   label: string;
+  icon?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-ink-100 bg-white px-5 py-4 shadow-card">
-      <div className="font-display text-2xl font-semibold text-brand-700 sm:text-3xl">
-        {value}
+    <div className="group relative overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-card backdrop-blur transition-shadow hover:shadow-glow">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-gradient-to-br from-brand-500/15 to-accent-500/15 blur-xl"
+      />
+      <div className="flex items-center gap-2">
+        {icon ? (
+          <span className="text-brand-500 transition-transform group-hover:scale-110">
+            {icon}
+          </span>
+        ) : null}
+        <div className="font-display text-2xl font-semibold text-gradient sm:text-3xl">
+          {value}
+        </div>
       </div>
       <div className="mt-1 text-xs font-medium uppercase tracking-wide text-ink-500">
         {label}
@@ -203,7 +234,7 @@ export function Avatar({
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center justify-center bg-brand-100 font-display text-2xl font-semibold text-brand-700",
+        "flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-100 to-accent-100 font-display text-2xl font-semibold text-brand-700",
         rounded,
         className,
       )}

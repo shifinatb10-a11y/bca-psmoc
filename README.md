@@ -18,17 +18,20 @@ College (Autonomous), Tirurangadi. Rebuilt with **Next.js 15 (App Router)**,
 | Admin login      | `/admin/login` | Secure email + password login.                                                               |
 | Admin dashboard  | `/admin`       | Role-aware management area.                                                                  |
 
-### The four admin roles
+### The five admin roles
 
 | Role              | Can manage                                                    |
 | ----------------- | ------------------------------------------------------------- |
+| **Super Admin**   | Everything — every section below **and** all administrator accounts. |
 | **Department**    | Faculty profiles, the homepage image and department text, admin team roles. |
 | **Association**   | Association terms, secretaries, event reports and magazines.  |
 | **Club**          | Club details, club events and their reports.                  |
 | **Study Zone**    | Previous year question papers and study notes.                |
 
 Each role can only open and edit its own section — enforced both in the UI and
-in the database (Row Level Security).
+in the database (Row Level Security). The **Super Admin** is the exception: it
+can open and edit **every** section. Only a Super Admin can grant or remove the
+Super Admin role (enforced in the app *and* by a database trigger).
 
 ### Security
 
@@ -83,7 +86,10 @@ values ('PASTE-THE-USER-UUID', 'admin@example.com', 'department')
 on conflict (user_id) do update set role = excluded.role;
 ```
 
-Valid roles: `department`, `association`, `club`, `studyzone`.
+Valid roles: `superadmin`, `department`, `association`, `club`, `studyzone`.
+Use `superadmin` for an account that manages every section (see
+[`sql/add-superadmin.sql`](sql/add-superadmin.sql) if your database already
+exists).
 
 ### 5. Run the site
 

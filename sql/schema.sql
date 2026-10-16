@@ -157,6 +157,34 @@ as $$
 $$;
 
 -- ============================================================================
+-- 7b. SUPER ADMIN GUARD
+--     Prevents anyone except a Super Admin from granting the Super Admin role
+--     (or editing a Super Admin account) through the public API.
+--     Requests with no signed-in user (e.g. the SQL Editor / service role)
+--     are allowed, so you can always bootstrap the first Super Admin.
+-- ============================================================================
+create or replace function public.guard_admin_role()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is not null
+     and (new.role = 'superadmin'
+          or (tg_op = 'UPDATE' and old.role = 'superadmin'))
+     and public.admin_role() is distinct from 'superadmin' then
+    raise exception 'Only a Super Admin can grant or remove the Super Admin role.';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists guard_admin_role_trg on public.admin_users;
+create trigger guard_admin_role_trg
+  before insert or update on public.admin_users
+  for each row execute function public.guard_admin_role();
+
+-- ============================================================================
 -- 8. ROW LEVEL SECURITY
 --    Everyone can READ the public content.
 --    Only the matching admin role can WRITE to each section.
@@ -213,55 +241,55 @@ create policy "public read study_materials"
 create policy "public read site_settings"
   on public.site_settings for select using (true);
 
--- ---- Faculty: Department admin ----
+-- ---- Faculty: Department admin (+ Super Admin) ----
 create policy "department writes faculty"
   on public.faculty for all to authenticated
-  using (public.admin_role() = 'department')
-  with check (public.admin_role() = 'department');
+  using (public.admin_role() in ('department', 'superadmin'))
+  with check (public.admin_role() in ('department', 'superadmin'));
 
--- ---- Site settings: Department admin ----
+-- ---- Site settings: Department admin (+ Super Admin) ----
 create policy "department writes site_settings"
   on public.site_settings for all to authenticated
-  using (public.admin_role() = 'department')
-  with check (public.admin_role() = 'department');
+  using (public.admin_role() in ('department', 'superadmin'))
+  with check (public.admin_role() in ('department', 'superadmin'));
 
--- ---- Associations + reports: Association admin ----
+-- ---- Associations + reports: Association admin (+ Super Admin) ----
 create policy "association writes associations"
   on public.associations for all to authenticated
-  using (public.admin_role() = 'association')
-  with check (public.admin_role() = 'association');
+  using (public.admin_role() in ('association', 'superadmin'))
+  with check (public.admin_role() in ('association', 'superadmin'));
 
 create policy "association writes association_reports"
   on public.association_reports for all to authenticated
-  using (public.admin_role() = 'association')
-  with check (public.admin_role() = 'association');
+  using (public.admin_role() in ('association', 'superadmin'))
+  with check (public.admin_role() in ('association', 'superadmin'));
 
--- ---- Club + events: Club admin ----
+-- ---- Club + events: Club admin (+ Super Admin) ----
 create policy "club writes clubs"
   on public.clubs for all to authenticated
-  using (public.admin_role() = 'club')
-  with check (public.admin_role() = 'club');
+  using (public.admin_role() in ('club', 'superadmin'))
+  with check (public.admin_role() in ('club', 'superadmin'));
 
 create policy "club writes club_events"
   on public.club_events for all to authenticated
-  using (public.admin_role() = 'club')
-  with check (public.admin_role() = 'club');
+  using (public.admin_role() in ('club', 'superadmin'))
+  with check (public.admin_role() in ('club', 'superadmin'));
 
--- ---- Study materials: Study Zone admin ----
+-- ---- Study materials: Study Zone admin (+ Super Admin) ----
 create policy "studyzone writes study_materials"
   on public.study_materials for all to authenticated
-  using (public.admin_role() = 'studyzone')
-  with check (public.admin_role() = 'studyzone');
+  using (public.admin_role() in ('studyzone', 'superadmin'))
+  with check (public.admin_role() in ('studyzone', 'superadmin'));
 
--- ---- Admin users: any admin can view the team; only Department changes roles ----
+-- ---- Admin users: any admin can view the team; Department or Super Admin changes roles ----
 create policy "admins read admin_users"
   on public.admin_users for select to authenticated
   using (public.admin_role() is not null);
 
 create policy "department manages admin_users"
   on public.admin_users for all to authenticated
-  using (public.admin_role() = 'department')
-  with check (public.admin_role() = 'department');
+  using (public.admin_role() in ('department', 'superadmin'))
+  with check (public.admin_role() in ('department', 'superadmin'));
 
 -- ============================================================================
 -- 9. STORAGE BUCKETS  (public read; admins upload)
@@ -395,7 +423,8 @@ on conflict (key) do nothing;
 --     values ('PASTE-THE-USER-UUID-HERE', 'admin@example.com', 'department')
 --     on conflict (user_id) do update set role = excluded.role;
 --
---  Valid roles: 'department' | 'association' | 'club' | 'studyzone'
+--  Valid roles: 'superadmin' | 'department' | 'association' | 'club' | 'studyzone'
+--     (Use 'superadmin' for an account that manages every section.)
 --
 --  Example — quick way to register by email without copying the UUID:
 --

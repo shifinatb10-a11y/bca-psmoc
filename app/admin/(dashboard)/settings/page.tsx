@@ -15,7 +15,7 @@ export default async function AdminSettingsPage() {
   }
 
   const settings = await getSettings();
-  const heroImage = settings.hero_image_url || "/college-hero.svg";
+  const heroImage = settings.hero_image_url || "/college-photo.jpg";
 
   return (
     <>

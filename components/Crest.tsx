@@ -8,8 +8,9 @@ export function Crest({ className = "h-11 w-11" }: { className?: string }) {
     >
       <defs>
         <linearGradient id="crestGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#1f47e6" />
-          <stop offset="100%" stopColor="#141d4d" />
+          <stop offset="0%" stopColor="#6366f1" />
+          <stop offset="55%" stopColor="#4f46e5" />
+          <stop offset="100%" stopColor="#1e1b4b" />
         </linearGradient>
       </defs>
       <path

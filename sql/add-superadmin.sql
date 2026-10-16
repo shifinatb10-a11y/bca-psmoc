@@ -146,13 +146,13 @@ create trigger guard_admin_role_trg
 -- Option A — promote an existing admin by email (replace the email):
 -- update public.admin_users
 -- set role = 'superadmin'
--- where email = 'superadmin@psmoc.edu';
+-- where email = 'superadmin.admin@psmoc.edu';
 
 -- Option B — register a brand-new auth user as Super Admin by email:
 -- insert into public.admin_users (user_id, email, role)
 -- select id, email, 'superadmin'
 -- from auth.users
--- where email = 'superadmin@psmoc.edu'
+-- where email = 'superadmin.admin@psmoc.edu'
 -- on conflict (user_id) do update set role = excluded.role;
 
 -- Check the result:

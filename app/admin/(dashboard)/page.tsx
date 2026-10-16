@@ -8,7 +8,7 @@ import {
   getFaculty,
   getStudyMaterials,
 } from "@/lib/queries";
-import { canManage, ROLE_DESCRIPTIONS, ROLE_LABELS } from "@/lib/types";
+import { canManage, isSuperAdmin, ROLE_DESCRIPTIONS, ROLE_LABELS } from "@/lib/types";
 import { AdminPageHeader } from "@/components/admin/AdminPage";
 import { ADMIN_NAV } from "@/components/admin/nav";
 
@@ -57,10 +57,12 @@ export default async function AdminOverviewPage() {
             You are signed in as {session.email ?? "an administrator"}
           </div>
           <p className="mt-1 text-brand-800/80">
-            Your account can manage the{" "}
-            {actions.map((item) => item.label.toLowerCase()).join(", ") ||
-              "dashboard"}{" "}
-            section. Other sections stay locked to their own administrators.
+            {isSuperAdmin(session.role)
+              ? "You have full access to every section of the dashboard and can manage all other administrator accounts."
+              : `Your account can manage the ${
+                  actions.map((item) => item.label.toLowerCase()).join(", ") ||
+                  "dashboard"
+                } section. Other sections stay locked to their own administrators.`}
           </p>
         </div>
       </div>

@@ -1,6 +1,12 @@
-export type AdminRole = "department" | "association" | "club" | "studyzone";
+export type AdminRole =
+  | "superadmin"
+  | "department"
+  | "association"
+  | "club"
+  | "studyzone";
 
 export const ADMIN_ROLES: AdminRole[] = [
+  "superadmin",
   "department",
   "association",
   "club",
@@ -8,6 +14,7 @@ export const ADMIN_ROLES: AdminRole[] = [
 ];
 
 export const ROLE_LABELS: Record<AdminRole, string> = {
+  superadmin: "Super Admin",
   department: "Department Admin",
   association: "Association Admin",
   club: "Club Admin",
@@ -15,6 +22,8 @@ export const ROLE_LABELS: Record<AdminRole, string> = {
 };
 
 export const ROLE_DESCRIPTIONS: Record<AdminRole, string> = {
+  superadmin:
+    "Full access — manages every section (department, association, club and study zone) and all other administrator accounts.",
   department:
     "Manages faculty profiles, the department page and general site settings.",
   association:
@@ -26,7 +35,15 @@ export const ROLE_DESCRIPTIONS: Record<AdminRole, string> = {
 /** Which admin section a role is allowed to manage. */
 export type Section = "department" | "association" | "club" | "studyzone";
 
+export const ALL_SECTIONS: Section[] = [
+  "department",
+  "association",
+  "club",
+  "studyzone",
+];
+
 const PERMISSIONS: Record<AdminRole, Section[]> = {
+  superadmin: ALL_SECTIONS,
   department: ["department"],
   association: ["association"],
   club: ["club"],
@@ -36,6 +53,11 @@ const PERMISSIONS: Record<AdminRole, Section[]> = {
 export function canManage(role: AdminRole | null, section: Section): boolean {
   if (!role) return false;
   return PERMISSIONS[role]?.includes(section) ?? false;
+}
+
+/** True only for the Super Admin role. */
+export function isSuperAdmin(role: AdminRole | null): boolean {
+  return role === "superadmin";
 }
 
 export interface Faculty {

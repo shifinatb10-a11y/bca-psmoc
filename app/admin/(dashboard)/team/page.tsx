@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { getAdminSession } from "@/lib/auth";
 import { getAdminUsers } from "@/lib/queries-admin";
-import { canManage, ADMIN_ROLES, ROLE_DESCRIPTIONS, ROLE_LABELS } from "@/lib/types";
+import { canManage, isSuperAdmin, ADMIN_ROLES, ROLE_DESCRIPTIONS, ROLE_LABELS } from "@/lib/types";
 import { AdminPageHeader, AdminCard, Unauthorized } from "@/components/admin/AdminPage";
 import { AdminForm } from "@/components/admin/AdminForm";
 import { inputClass } from "@/components/admin/Field";
@@ -64,7 +64,12 @@ export default async function AdminTeamPage() {
                     defaultValue={admin.role}
                     className={inputClass}
                   >
-                    {ADMIN_ROLES.map((role) => (
+                    {ADMIN_ROLES.filter(
+                      (role) =>
+                        role !== "superadmin" ||
+                        isSuperAdmin(session.role) ||
+                        admin.role === "superadmin",
+                    ).map((role) => (
                       <option key={role} value={role}>
                         {ROLE_LABELS[role]}
                       </option>
@@ -79,8 +84,8 @@ export default async function AdminTeamPage() {
 
       <div className="mt-8">
         <AdminCard
-          title="About the four admin roles"
-          description="Each role only sees and edits its own section."
+          title="About the admin roles"
+          description="Each role only sees and edits its own section. The Super Admin can manage every section."
         >
           <div className="grid gap-3 sm:grid-cols-2">
             {ADMIN_ROLES.map((role) => (

@@ -46,7 +46,7 @@ export function Unauthorized({ section }: { section: Section }) {
       </h2>
       <p className="mx-auto mt-2 max-w-md text-sm text-ink-500">
         This area is managed by the {SECTION_OWNER[section]} role. If you need
-        access, ask the Department Admin to update your role.
+        access, ask a Department or Super Admin to update your role.
       </p>
     </div>
   );
@@ -87,8 +87,15 @@ export function AdminCard({
 }
 
 export function RoleBadge({ role }: { role: keyof typeof ROLE_LABELS }) {
+  const superAdmin = role === "superadmin";
   return (
-    <span className="inline-flex rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+    <span
+      className={
+        superAdmin
+          ? "inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800"
+          : "inline-flex rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700"
+      }
+    >
       {ROLE_LABELS[role]}
     </span>
   );

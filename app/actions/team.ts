@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminSession } from "@/lib/auth";
-import { ADMIN_ROLES, type AdminRole } from "@/lib/types";
+import { ADMIN_ROLES, canManage, isSuperAdmin, type AdminRole } from "@/lib/types";
 import { text } from "@/lib/upload";
 import type { ActionState } from "@/lib/action-state";
 
@@ -12,8 +12,8 @@ export async function updateAdminRole(
   formData: FormData,
 ): Promise<ActionState> {
   const admin = await getAdminSession();
-  if (!admin || !canManageDepartment(admin.role)) {
-    return { error: "Only a Department Admin can change admin roles." };
+  if (!admin || !canManage(admin.role, "department")) {
+    return { error: "Only a Department or Super Admin can change admin roles." };
   }
 
   const id = text(formData, "id");
@@ -23,6 +23,21 @@ export async function updateAdminRole(
   if (!ADMIN_ROLES.includes(role)) return { error: "Invalid role." };
 
   const supabase = await createClient();
+
+  // The Super Admin role can only be granted or removed by another Super Admin.
+  if (!isSuperAdmin(admin.role)) {
+    const { data: target } = await supabase
+      .from("admin_users")
+      .select("role")
+      .eq("id", id)
+      .maybeSingle();
+    if (role === "superadmin" || target?.role === "superadmin") {
+      return {
+        error: "Only a Super Admin can grant or remove the Super Admin role.",
+      };
+    }
+  }
+
   const { error } = await supabase
     .from("admin_users")
     .update({ role })
@@ -31,8 +46,4 @@ export async function updateAdminRole(
 
   revalidatePath("/admin/team");
   return { ok: true, message: "Role updated." };
-}
-
-function canManageDepartment(role: AdminRole): boolean {
-  return role === "department";
 }
